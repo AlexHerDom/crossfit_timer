@@ -30,19 +30,13 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  shared_preferences: ^2.2.2
+  audioplayers: 5.2.1
+  wakelock_plus: ^1.2.5
+  confetti: ^0.7.0
+  flutter_animate: ^4.5.0
 
   # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
-  
-  # Para guardar configuraciones del usuario
-  shared_preferences: ^2.2.2
-  
-  # Para reproducir sonidos
-  audioplayers: ^5.2.1
-  
-  # Para mantener la pantalla activa durante los entrenamientos
-  wakelock_plus: ^1.1.4
 
 dev_dependencies:
   flutter_test:

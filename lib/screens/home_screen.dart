@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'timer_screen.dart';
 import 'config_screen.dart';
 import 'history_screen.dart';
@@ -80,7 +81,7 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Título de bienvenida
+            // Título de bienvenida con animación
             const Text(
               '¡Hora de entrenar!',
               style: TextStyle(
@@ -89,10 +90,13 @@ class HomeScreen extends StatelessWidget {
                 color: Colors.orange,
               ),
               textAlign: TextAlign.center,
-            ),
+            ).animate()
+              .fadeIn(duration: 600.ms, delay: 100.ms)
+              .slideY(begin: -0.3, end: 0),
+            
             const SizedBox(height: 40),
             
-            // Botón AMRAP
+            // Botón AMRAP con animación
             _buildTimerButton(
               context,
               title: 'AMRAP',
@@ -100,11 +104,14 @@ class HomeScreen extends StatelessWidget {
               icon: Icons.repeat,
               color: Colors.orange,
               onTap: () => _navigateToTimer(context, 'AMRAP'),
-            ),
+            ).animate()
+              .fadeIn(duration: 600.ms, delay: 200.ms)
+              .slideX(begin: -0.3, end: 0)
+              .shimmer(delay: 1000.ms, duration: 1500.ms),
             
             const SizedBox(height: 20),
             
-            // Botón EMOM
+            // Botón EMOM con animación
             _buildTimerButton(
               context,
               title: 'EMOM',
@@ -112,11 +119,14 @@ class HomeScreen extends StatelessWidget {
               icon: Icons.schedule,
               color: Colors.blue,
               onTap: () => _navigateToTimer(context, 'EMOM'),
-            ),
+            ).animate()
+              .fadeIn(duration: 600.ms, delay: 300.ms)
+              .slideX(begin: 0.3, end: 0)
+              .shimmer(delay: 1200.ms, duration: 1500.ms),
             
             const SizedBox(height: 20),
             
-            // Botón Tabata
+            // Botón Tabata con animación
             _buildTimerButton(
               context,
               title: 'TABATA',
@@ -124,11 +134,14 @@ class HomeScreen extends StatelessWidget {
               icon: Icons.fitness_center,
               color: Colors.red,
               onTap: () => _navigateToTimer(context, 'TABATA'),
-            ),
+            ).animate()
+              .fadeIn(duration: 600.ms, delay: 400.ms)
+              .slideX(begin: -0.3, end: 0)
+              .shimmer(delay: 1400.ms, duration: 1500.ms),
             
             const SizedBox(height: 20),
             
-            // Botón Countdown
+            // Botón Countdown con animación
             _buildTimerButton(
               context,
               title: 'COUNTDOWN',
@@ -136,11 +149,14 @@ class HomeScreen extends StatelessWidget {
               icon: Icons.timer,
               color: Colors.green,
               onTap: () => _navigateToTimer(context, 'COUNTDOWN'),
-            ),
+            ).animate()
+              .fadeIn(duration: 600.ms, delay: 500.ms)
+              .slideX(begin: 0.3, end: 0)
+              .shimmer(delay: 1600.ms, duration: 1500.ms),
             
             const SizedBox(height: 40),
             
-            // Firma del desarrollador
+            // Firma del desarrollador con animación
             const Text(
               '🦊 By Alexander Herrera',
               style: TextStyle(
@@ -149,14 +165,16 @@ class HomeScreen extends StatelessWidget {
                 fontStyle: FontStyle.italic,
               ),
               textAlign: TextAlign.center,
-            ),
+            ).animate()
+              .fadeIn(duration: 600.ms, delay: 800.ms)
+              .slideY(begin: 0.3, end: 0),
           ],
         ),
       ),
     );
   }
 
-  // Widget reutilizable para crear botones consistentes
+  // Widget reutilizable para crear botones consistentes con efectos mejorados
   Widget _buildTimerButton(
     BuildContext context, {
     required String title,
@@ -165,53 +183,116 @@ class HomeScreen extends StatelessWidget {
     required Color color,
     required VoidCallback onTap,
   }) {
-    return SizedBox(
-      width: double.infinity,
-      height: 80,
-      child: ElevatedButton(
-        onPressed: onTap,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.1), // Sombra más sutil
+            blurRadius: 8, // Menos difuso
+            spreadRadius: 1, // Menos extensión
+            offset: const Offset(0, 4), // Sombra más pequeña
           ),
-          elevation: 5,
-        ),
-        child: Row(
-          children: [
-            Icon(icon, size: 40),
-            const SizedBox(width: 20),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w300,
-                    ),
-                  ),
+        ],
+      ),
+      child: SizedBox(
+        width: double.infinity,
+        height: 80,
+        child: ElevatedButton(
+          onPressed: onTap,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: color,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            elevation: 3, // Menos elevación
+            shadowColor: color.withOpacity(0.2), // Sombra más sutil
+          ),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  color.withOpacity(0.9),
+                  color,
+                  color.withOpacity(0.8),
                 ],
               ),
             ),
-            // Botón de configuración
-            IconButton(
-              onPressed: () => _openConfigScreen(context, title),
-              icon: const Icon(Icons.settings),
-              color: Colors.white70,
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(icon, size: 40, color: Colors.white),
+                ),
+                const SizedBox(width: 20),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black26,
+                              blurRadius: 4,
+                              offset: Offset(1, 1),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w300,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black26,
+                              blurRadius: 2,
+                              offset: Offset(1, 1),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Botón de configuración mejorado
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: IconButton(
+                    onPressed: () => _openConfigScreen(context, title),
+                    icon: const Icon(Icons.settings),
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Icon(Icons.arrow_forward_ios, color: Colors.white),
+                ),
+              ],
             ),
-            const Icon(Icons.arrow_forward_ios),
-          ],
+          ),
         ),
       ),
     );
