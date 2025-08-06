@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
+import '../theme_provider.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -10,6 +12,14 @@ class HistoryScreen extends StatefulWidget {
 
 class _HistoryScreenState extends State<HistoryScreen> {
   List<WorkoutHistory> _workoutHistory = [];
+  String _selectedFilter = 'Todos';
+  final List<String> _filters = [
+    'Todos',
+    'AMRAP',
+    'EMOM',
+    'TABATA',
+    'COUNTDOWN',
+  ];
 
   @override
   void initState() {
@@ -20,7 +30,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   void _loadHistory() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     List<String> historyStrings = prefs.getStringList('workout_history') ?? [];
-    
+
     setState(() {
       _workoutHistory = historyStrings.map((historyString) {
         List<String> parts = historyString.split('|');
@@ -31,10 +41,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
           date: DateTime.parse(parts[3]),
         );
       }).toList();
-      
+
       // Ordenar por fecha más reciente
       _workoutHistory.sort((a, b) => b.date.compareTo(a.date));
     });
+  }
+
+  List<WorkoutHistory> get _filteredWorkouts {
+    if (_selectedFilter == 'Todos') {
+      return _workoutHistory;
+    }
+    return _workoutHistory.where((w) => w.type == _selectedFilter).toList();
   }
 
   void _clearHistory() async {
@@ -43,10 +60,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
     setState(() {
       _workoutHistory.clear();
     });
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Historial borrado')),
-    );
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Historial borrado')));
   }
 
   String _formatDuration(int seconds) {
@@ -76,10 +93,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Historial de Entrenamientos'),
         centerTitle: true,
+        backgroundColor: themeProvider.primaryColor,
+        foregroundColor: Colors.white,
         actions: [
           if (_workoutHistory.isNotEmpty)
             IconButton(
@@ -97,26 +118,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          Icons.history,
-                          size: 80,
-                          color: Colors.grey,
-                        ),
+                        Icon(Icons.history, size: 80, color: Colors.grey),
                         SizedBox(height: 20),
                         Text(
                           'No hay entrenamientos registrados',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.grey,
-                          ),
+                          style: TextStyle(fontSize: 18, color: Colors.grey),
                         ),
                         SizedBox(height: 10),
                         Text(
                           'Completa tu primer entrenamiento para verlo aquí',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
-                          ),
+                          style: TextStyle(fontSize: 14, color: Colors.grey),
                           textAlign: TextAlign.center,
                         ),
                       ],
@@ -151,7 +162,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Duración: ${_formatDuration(workout.duration)}'),
+                              Text(
+                                'Duración: ${_formatDuration(workout.duration)}',
+                              ),
                               if (workout.rounds > 1)
                                 Text('Rondas: ${workout.rounds}'),
                               Text(
@@ -171,19 +184,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       );
                     },
                   ),
-          ),
-          
-          // Firma del desarrollador
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              '🦊 By Alexander Herrera',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-                fontStyle: FontStyle.italic,
-              ),
-            ),
           ),
         ],
       ),
