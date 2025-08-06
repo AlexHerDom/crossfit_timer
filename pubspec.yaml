@@ -1,5 +1,5 @@
-name: workout_timer
-description: "Workout Timer - Professional interval timer for fitness training"
+name: crossfit_timer_pro
+description: "CrossFit Timer Pro - Professional interval timer for CrossFit training with AMRAP, EMOM, Tabata and Countdown timers"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev

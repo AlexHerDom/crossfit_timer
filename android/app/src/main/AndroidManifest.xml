@@ -4,7 +4,7 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     
     <application
-        android:label="Workout Timer"
+        android:label="CrossFit Timer Pro"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         <activity

@@ -35,7 +35,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _vibrationEnabled = prefs.getBool('vibration_enabled') ?? true;
       _keepScreenOn = prefs.getBool('keep_screen_on') ?? true;
       _beepVolume = prefs.getDouble('beep_volume') ?? 1.0;
-      _preparationTime = prefs.getInt('preparation_time') ?? 10;
+
+      // Validar que preparation_time esté dentro del rango válido (5-30)
+      int savedPrepTime = prefs.getInt('preparation_time') ?? 10;
+      _preparationTime = (savedPrepTime < 5 || savedPrepTime > 30)
+          ? 10
+          : savedPrepTime;
+
       _selectedTheme = prefs.getString('selected_theme') ?? 'Orange';
       // El idioma ahora se maneja a través del LanguageProvider
     });

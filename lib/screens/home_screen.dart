@@ -35,9 +35,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   String _getTabataSubtitle(LanguageProvider languageProvider) {
-    final subtitle = '${_tabataWorkSeconds}s ${languageProvider.getText('work').toLowerCase()} / ${_tabataRestSeconds}s ${languageProvider.getText('rest').toLowerCase()}';
+    final subtitle =
+        '${_tabataWorkSeconds}s ${languageProvider.getText('work').toLowerCase()} / ${_tabataRestSeconds}s ${languageProvider.getText('rest').toLowerCase()}';
     // Debug: imprimir el subtítulo para verificar
-    print('🧪 DEBUG: Tabata subtitle = $subtitle (work: $_tabataWorkSeconds, rest: $_tabataRestSeconds)');
+    print(
+      '🧪 DEBUG: Tabata subtitle = $subtitle (work: $_tabataWorkSeconds, rest: $_tabataRestSeconds)',
+    );
     return subtitle;
   }
 
@@ -407,7 +410,7 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (context) => ConfigScreen(timerType: timerType),
       ),
     );
-    
+
     // Recargar la configuración de Tabata cuando regresa de la configuración
     if (timerType == 'TABATA') {
       _loadTabataConfig();

@@ -12,7 +12,9 @@ import 'package:workout_timer/theme_provider.dart';
 import 'package:workout_timer/language_provider.dart';
 
 void main() {
-  testWidgets('CrossFit Timer app starts correctly', (WidgetTester tester) async {
+  testWidgets('CrossFit Timer app starts correctly', (
+    WidgetTester tester,
+  ) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(
       MultiProvider(

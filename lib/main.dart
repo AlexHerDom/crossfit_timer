@@ -6,10 +6,16 @@ import 'screens/home_screen.dart';
 import 'theme_provider.dart';
 import 'language_provider.dart';
 import 'localization.dart';
+import 'services/license_manager.dart';
+import 'services/analytics_manager.dart';
 
-void main() {
+void main() async {
   // Asegurar que Flutter esté inicializado
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Inicializar servicios
+  await LicenseManager.initialize();
+  await AnalyticsManager.initialize();
 
   // Configurar orientación vertical para toda la app
   SystemChrome.setPreferredOrientations([

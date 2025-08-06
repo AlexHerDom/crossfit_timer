@@ -43,3 +43,26 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Keystores - NUNCA subir al repositorio por seguridad
+*.jks
+*.keystore
+
+# Archivos temporales de documentación y desarrollo
+*.md
+BUILD_INFO.txt
+devtools_options.yaml
+lanzamiento.sh
+create_feature_graphic.sh
+generar_icono_escritorio.sh
+generador_icono.html
+
+# Podfile.lock puede cambiar entre desarrolladores
+ios/Podfile.lock
+
+# Screenshots y assets temporales
+screenshots/
+privacy_policy.md
+
+# Archivos de desarrollo local
+icon_env/
