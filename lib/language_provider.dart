@@ -210,9 +210,6 @@ class LanguageProvider extends ChangeNotifier {
         'developer': 'Desarrollador: CrossFit Timer Team',
         'app_description':
             'Esta aplicación está diseñada para ayudarte con tus entrenamientos de CrossFit y fitness.',
-        'sec_suffix': 'seg',
-        'seconds_suffix': 'segundos',
-        'rounds_suffix': 'rondas',
 
         // About Dialog
         'timer_number_one': 'El Timer #1 para CrossFit',
