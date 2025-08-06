@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import '../theme_provider.dart';
 import '../language_provider.dart';
+import '../localization.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -74,8 +75,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          languageProvider.getText('settings'),
+        title: const Text(
+          'Configuraciones',
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         centerTitle: true,
@@ -96,16 +97,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onPressed: () {
               _saveSettings();
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    '✅ ${languageProvider.getText('settings_saved')}',
-                  ),
+                const SnackBar(
+                  content: Text('✅ Configuraciones guardadas'),
                   duration: Duration(seconds: 2),
                 ),
               );
             },
             icon: const Icon(Icons.save, color: Colors.white),
-            tooltip: languageProvider.getText('save_settings'),
+            tooltip: 'Guardar configuraciones',
           ),
         ],
       ),

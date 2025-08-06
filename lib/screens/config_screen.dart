@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import '../theme_provider.dart';
+import '../language_provider.dart';
 
 class ConfigScreen extends StatefulWidget {
   final String timerType;
@@ -19,6 +20,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
   final _roundsController = TextEditingController();
   final _workSecondsController = TextEditingController();
   final _restSecondsController = TextEditingController();
+  final _preparationController = TextEditingController();
 
   @override
   void initState() {
@@ -33,11 +35,16 @@ class _ConfigScreenState extends State<ConfigScreen> {
     _roundsController.dispose();
     _workSecondsController.dispose();
     _restSecondsController.dispose();
+    _preparationController.dispose();
     super.dispose();
   }
 
   void _loadDefaultValues() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    // Cargar tiempo de preparación común para todos
+    _preparationController.text = (prefs.getInt('preparation_time') ?? 10)
+        .toString();
 
     switch (widget.timerType) {
       case 'AMRAP':
@@ -72,6 +79,12 @@ class _ConfigScreenState extends State<ConfigScreen> {
 
   void _saveConfig() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    // Guardar tiempo de preparación común para todos
+    await prefs.setInt(
+      'preparation_time',
+      int.parse(_preparationController.text),
+    );
 
     switch (widget.timerType) {
       case 'AMRAP':
@@ -111,7 +124,8 @@ class _ConfigScreenState extends State<ConfigScreen> {
 
   Widget _buildTimeField(
     String label,
-    TextEditingController controller, {
+    TextEditingController controller,
+    LanguageProvider languageProvider, {
     String suffix = '',
   }) {
     return Column(
@@ -135,11 +149,11 @@ class _ConfigScreenState extends State<ConfigScreen> {
           ),
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'Este campo es requerido';
+              return languageProvider.getText('field_required');
             }
             final number = int.tryParse(value);
             if (number == null || number < 0) {
-              return 'Ingresa un número válido';
+              return languageProvider.getText('enter_valid_number');
             }
             return null;
           },
@@ -151,10 +165,13 @@ class _ConfigScreenState extends State<ConfigScreen> {
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
+    final languageProvider = Provider.of<LanguageProvider>(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Configurar ${widget.timerType}'),
+        title: Text(
+          '${languageProvider.getText('configure')} ${widget.timerType}',
+        ),
         centerTitle: true,
         backgroundColor: themeProvider.primaryColor,
         foregroundColor: Colors.white,
@@ -166,7 +183,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Personaliza tu entrenamiento ${widget.timerType}',
+                '${languageProvider.getText('customize_workout')} ${widget.timerType}',
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -174,23 +191,36 @@ class _ConfigScreenState extends State<ConfigScreen> {
               ),
               const SizedBox(height: 30),
 
+              // Tiempo de preparación (común para todos excepto COUNTDOWN)
+              if (widget.timerType != 'COUNTDOWN') ...[
+                _buildTimeField(
+                  languageProvider.getText('preparation_time'),
+                  _preparationController,
+                  languageProvider,
+                  suffix: languageProvider.getText('seconds_suffix'),
+                ),
+                const SizedBox(height: 20),
+              ],
+
               // Configuración específica para cada tipo
               if (widget.timerType == 'AMRAP') ...[
                 Row(
                   children: [
                     Expanded(
                       child: _buildTimeField(
-                        'Minutos',
+                        languageProvider.getText('minutes'),
                         _minutesController,
-                        suffix: 'min',
+                        languageProvider,
+                        suffix: languageProvider.getText('min_suffix'),
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: _buildTimeField(
-                        'Segundos',
+                        languageProvider.getText('seconds'),
                         _secondsController,
-                        suffix: 'seg',
+                        languageProvider,
+                        suffix: languageProvider.getText('sec_suffix'),
                       ),
                     ),
                   ],
@@ -202,46 +232,52 @@ class _ConfigScreenState extends State<ConfigScreen> {
                   children: [
                     Expanded(
                       child: _buildTimeField(
-                        'Minutos por ronda',
+                        languageProvider.getText('minutes_per_round'),
                         _minutesController,
-                        suffix: 'min',
+                        languageProvider,
+                        suffix: languageProvider.getText('min_suffix'),
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: _buildTimeField(
-                        'Segundos extra',
+                        languageProvider.getText('extra_seconds'),
                         _secondsController,
-                        suffix: 'seg',
+                        languageProvider,
+                        suffix: languageProvider.getText('sec_suffix'),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 20),
                 _buildTimeField(
-                  'Número de rondas',
+                  languageProvider.getText('number_of_rounds'),
                   _roundsController,
-                  suffix: 'rondas',
+                  languageProvider,
+                  suffix: languageProvider.getText('rounds_suffix'),
                 ),
               ],
 
               if (widget.timerType == 'TABATA') ...[
                 _buildTimeField(
-                  'Tiempo de trabajo',
+                  languageProvider.getText('work_time'),
                   _workSecondsController,
-                  suffix: 'segundos',
+                  languageProvider,
+                  suffix: languageProvider.getText('seconds_suffix'),
                 ),
                 const SizedBox(height: 20),
                 _buildTimeField(
-                  'Tiempo de descanso',
+                  languageProvider.getText('rest_time'),
                   _restSecondsController,
-                  suffix: 'segundos',
+                  languageProvider,
+                  suffix: languageProvider.getText('seconds_suffix'),
                 ),
                 const SizedBox(height: 20),
                 _buildTimeField(
-                  'Número de rondas',
+                  languageProvider.getText('number_of_rounds'),
                   _roundsController,
-                  suffix: 'rondas',
+                  languageProvider,
+                  suffix: languageProvider.getText('rounds_suffix'),
                 ),
               ],
 
@@ -250,17 +286,19 @@ class _ConfigScreenState extends State<ConfigScreen> {
                   children: [
                     Expanded(
                       child: _buildTimeField(
-                        'Minutos',
+                        languageProvider.getText('minutes'),
                         _minutesController,
-                        suffix: 'min',
+                        languageProvider,
+                        suffix: languageProvider.getText('min_suffix'),
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: _buildTimeField(
-                        'Segundos',
+                        languageProvider.getText('seconds'),
                         _secondsController,
-                        suffix: 'seg',
+                        languageProvider,
+                        suffix: languageProvider.getText('sec_suffix'),
                       ),
                     ),
                   ],
@@ -279,8 +317,8 @@ class _ConfigScreenState extends State<ConfigScreen> {
                     backgroundColor: Colors.orange,
                     foregroundColor: Colors.white,
                   ),
-                  child: const Text(
-                    'Guardar Configuración',
+                  child: Text(
+                    languageProvider.getText('save_configuration'),
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),

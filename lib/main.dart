@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'screens/home_screen.dart';
 import 'theme_provider.dart';
+import 'language_provider.dart';
 import 'localization.dart';
 
 void main() {
@@ -17,8 +18,11 @@ void main() {
   ]);
 
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => ThemeProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => ThemeProvider()),
+        ChangeNotifierProvider(create: (context) => LanguageProvider()),
+      ],
       child: const CrossFitTimerApp(),
     ),
   );

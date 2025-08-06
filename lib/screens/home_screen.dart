@@ -6,6 +6,7 @@ import 'config_screen.dart';
 import 'history_screen.dart';
 import 'settings_screen.dart';
 import '../theme_provider.dart';
+import '../language_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,12 +19,13 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
+    final languageProvider = Provider.of<LanguageProvider>(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Workout Timer',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: Text(
+          languageProvider.getText('workout_timer'),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         backgroundColor: themeProvider.primaryColor,
@@ -35,7 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
               MaterialPageRoute(builder: (context) => const HistoryScreen()),
             ),
             icon: const Icon(Icons.history),
-            tooltip: 'Historial',
+            tooltip: languageProvider.getText('history'),
           ),
           IconButton(
             onPressed: () => Navigator.push(
@@ -43,7 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
               MaterialPageRoute(builder: (context) => const SettingsScreen()),
             ),
             icon: const Icon(Icons.settings),
-            tooltip: 'Configuraciones',
+            tooltip: languageProvider.getText('settings'),
           ),
           PopupMenuButton<String>(
             onSelected: (value) {
@@ -52,13 +54,13 @@ class _HomeScreenState extends State<HomeScreen> {
               }
             },
             itemBuilder: (BuildContext context) => [
-              const PopupMenuItem<String>(
+              PopupMenuItem<String>(
                 value: 'about',
                 child: Row(
                   children: [
-                    Icon(Icons.info_outline),
-                    SizedBox(width: 8),
-                    Text('Acerca de'),
+                    const Icon(Icons.info_outline),
+                    const SizedBox(width: 8),
+                    Text(languageProvider.getText('about')),
                   ],
                 ),
               ),
@@ -75,15 +77,57 @@ class _HomeScreenState extends State<HomeScreen> {
             // Título de bienvenida con animación más atractivo
             Column(
                   children: [
-                    Text(
-                      'Workout Timer',
-                      style: TextStyle(
-                        fontSize: 36,
-                        fontWeight: FontWeight.bold,
-                        color: themeProvider.primaryColor,
-                        letterSpacing: 2.0,
-                      ),
-                      textAlign: TextAlign.center,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          languageProvider.getText('workout_timer'),
+                          style: TextStyle(
+                            fontSize: 36,
+                            fontWeight: FontWeight.bold,
+                            color: themeProvider.primaryColor,
+                            letterSpacing: 2.0,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Colors.amber, Colors.orange],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.orange.withOpacity(0.3),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: const Text(
+                            'PRO',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.black26,
+                                  blurRadius: 2,
+                                  offset: Offset(1, 1),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 8),
                     Container(
@@ -109,7 +153,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Entrena como un profesional',
+                            languageProvider.getText('no_subscriptions'),
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
@@ -131,8 +175,8 @@ class _HomeScreenState extends State<HomeScreen> {
             // Botón AMRAP con animación
             _buildTimerButton(
                   context,
-                  title: 'AMRAP',
-                  subtitle: 'Tantas rondas como puedas',
+                  title: languageProvider.getText('amrap_title'),
+                  subtitle: languageProvider.getText('amrap_subtitle'),
                   icon: Icons.all_inclusive,
                   color: Colors.orange,
                   onTap: () => _navigateToTimer(context, 'AMRAP'),
@@ -147,8 +191,8 @@ class _HomeScreenState extends State<HomeScreen> {
             // Botón EMOM con animación
             _buildTimerButton(
                   context,
-                  title: 'EMOM',
-                  subtitle: 'Cada minuto en punto',
+                  title: languageProvider.getText('emom_title'),
+                  subtitle: languageProvider.getText('emom_subtitle'),
                   icon: Icons.access_time,
                   color: Colors.blue,
                   onTap: () => _navigateToTimer(context, 'EMOM'),
@@ -163,8 +207,8 @@ class _HomeScreenState extends State<HomeScreen> {
             // Botón Tabata con animación
             _buildTimerButton(
                   context,
-                  title: 'TABATA',
-                  subtitle: '20s trabajo / 10s descanso',
+                  title: languageProvider.getText('tabata_title'),
+                  subtitle: languageProvider.getText('tabata_subtitle'),
                   icon: Icons.flash_on,
                   color: Colors.red,
                   onTap: () => _navigateToTimer(context, 'TABATA'),
@@ -179,8 +223,8 @@ class _HomeScreenState extends State<HomeScreen> {
             // Botón Countdown con animación
             _buildTimerButton(
                   context,
-                  title: 'COUNTDOWN',
-                  subtitle: 'Temporizador simple',
+                  title: languageProvider.getText('countdown_title'),
+                  subtitle: languageProvider.getText('countdown_subtitle'),
                   icon: Icons.timer,
                   color: Colors.green,
                   onTap: () => _navigateToTimer(context, 'COUNTDOWN'),
@@ -341,6 +385,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showAboutDialog() {
+    final languageProvider = Provider.of<LanguageProvider>(
+      context,
+      listen: false,
+    );
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -355,80 +404,278 @@ class _HomeScreenState extends State<HomeScreen> {
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.1),
+                  gradient: LinearGradient(
+                    colors: [Colors.orange, Colors.deepOrange],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
                   borderRadius: BorderRadius.circular(40),
-                  border: Border.all(color: Colors.orange, width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.orange.withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-                child: const Icon(Icons.timer, size: 40, color: Colors.orange),
+                child: const Icon(
+                  Icons.fitness_center,
+                  size: 40,
+                  color: Colors.white,
+                ),
               ),
               const SizedBox(height: 16),
               const Text(
-                'Workout Timer',
+                'Workout Timer PRO',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: Colors.orange,
                 ),
               ),
-              const Text(
-                'v1.0.0',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.green,
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: const Text(
+                  'v1.0.0 - Complete',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ],
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Temporizador profesional para entrenamientos de fitness',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Column(
-                  children: [
-                    Text(
-                      '✨ Características:',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.orange,
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.orange.withOpacity(0.1),
+                        Colors.deepOrange.withOpacity(0.05),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        '🏆 ${languageProvider.getText('timer_number_one')}',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.orange,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      '• AMRAP - As Many Rounds As Possible\n'
-                      '• EMOM - Every Minute On the Minute\n'
-                      '• TABATA - Intervalos de alta intensidad\n'
-                      '• COUNTDOWN - Temporizador simple',
-                      style: TextStyle(fontSize: 14),
-                    ),
-                  ],
+                      const SizedBox(height: 8),
+                      Text(
+                        languageProvider.getText('used_by_athletes'),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontStyle: FontStyle.italic,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                '🦊 Desarrollado por Alexander Herrera',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontStyle: FontStyle.italic,
-                  color: Colors.grey,
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '✨ ${languageProvider.getText('everything_included')}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.orange,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.check_circle,
+                            color: Colors.green,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              languageProvider.getText('professional_timers'),
+                              style: const TextStyle(fontSize: 13),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.check_circle,
+                            color: Colors.green,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              languageProvider.getText('intelligent_voice'),
+                              style: const TextStyle(fontSize: 13),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.check_circle,
+                            color: Colors.green,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              languageProvider.getText('complete_history'),
+                              style: const TextStyle(fontSize: 13),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.check_circle,
+                            color: Colors.green,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              languageProvider.getText('offline_no_ads'),
+                              style: const TextStyle(fontSize: 13),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.check_circle,
+                            color: Colors.green,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              languageProvider.getText('premium_themes'),
+                              style: const TextStyle(fontSize: 13),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.green.withOpacity(0.3)),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        '💰 ${languageProvider.getText('incredible_value')}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        languageProvider
+                            .getText('other_apps_cost')
+                            .replaceAll('\\n', '\n'),
+                        style: const TextStyle(fontSize: 14),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  languageProvider
+                      .getText('developed_by')
+                      .replaceAll('\\n', '\n'),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontStyle: FontStyle.italic,
+                    color: Colors.grey,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text(
-                'Cerrar',
-                style: TextStyle(color: Colors.orange),
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text(
+                      languageProvider.getText('close'),
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      // Aquí puedes agregar la lógica para mostrar más información o ir a la tienda
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            languageProvider.getText('thanks_message'),
+                          ),
+                          backgroundColor: Colors.orange,
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: Text(languageProvider.getText('love_it')),
+                  ),
+                ),
+              ],
             ),
           ],
         );

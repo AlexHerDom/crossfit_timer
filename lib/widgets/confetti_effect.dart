@@ -23,8 +23,10 @@ class ConfettiEffect extends StatefulWidget {
 class _ConfettiEffectState extends State<ConfettiEffect> {
   late ConfettiController _confettiController;
   late ConfettiController _confettiController2;
-  late ConfettiController _confettiController3; // Tercer controlador para efectos intensos
-  late ConfettiController _confettiController4; // Cuarto controlador para efectos intensos
+  late ConfettiController
+  _confettiController3; // Tercer controlador para efectos intensos
+  late ConfettiController
+  _confettiController4; // Cuarto controlador para efectos intensos
 
   @override
   void initState() {
@@ -118,8 +120,8 @@ class _ConfettiEffectState extends State<ConfettiEffect> {
             numberOfParticles: widget.isIntense ? 18 : 10,
             gravity: 0.2,
             colors: const [
-              Colors.orange, 
-              Colors.amber, 
+              Colors.orange,
+              Colors.amber,
               Colors.yellow,
               Colors.red,
             ],

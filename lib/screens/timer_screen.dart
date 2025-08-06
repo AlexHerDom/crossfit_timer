@@ -10,7 +10,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 import '../widgets/animated_circular_timer.dart';
 import '../widgets/confetti_effect.dart';
 import '../theme_provider.dart';
-import '../localization.dart';
+import '../language_provider.dart';
 import 'dart:async';
 
 class TimerScreen extends StatefulWidget {
@@ -43,10 +43,12 @@ class _TimerScreenState extends State<TimerScreen> {
   int _lastBeepSecond = -1; // Para controlar beeps únicos por segundo
   bool _hasPlayedHalfwayBeep = false; // Para sonidos especiales
   bool _hasPlayedTenSecondsBeep = false; // Para anuncio de 10 segundos
+  bool _hasPlayedFiveSecondsBeep = false; // Para anuncio de 5 segundos
+  bool _hasPlayedTimeUpBeep = false; // Para anuncio de "Tiempo"
 
   // Player de audio
   final AudioPlayer _audioPlayer = AudioPlayer();
-  
+
   // Text-to-Speech
   final FlutterTts _flutterTts = FlutterTts();
 
@@ -60,6 +62,13 @@ class _TimerScreenState extends State<TimerScreen> {
     ]);
     _setupTts(); // Configurar Text-to-Speech
     _setupTimer();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Reconfigurar TTS cuando cambie el idioma
+    _setupTts();
   }
 
   @override
@@ -194,7 +203,9 @@ class _TimerScreenState extends State<TimerScreen> {
     try {
       // Sonido especial para indicar que terminó un minuto
       await _audioPlayer.setPlayerMode(PlayerMode.lowLatency);
-      await _audioPlayer.play(AssetSource('sounds/halfway.wav')); // Usamos el sonido de halfway que es más distintivo
+      await _audioPlayer.play(
+        AssetSource('sounds/halfway.wav'),
+      ); // Usamos el sonido de halfway que es más distintivo
       HapticFeedback.mediumImpact(); // Vibración más fuerte para marcar el final del minuto
       print("✅ Minute complete sound reproducido exitosamente");
     } catch (e) {
@@ -217,18 +228,25 @@ class _TimerScreenState extends State<TimerScreen> {
     try {
       await _flutterTts.setVolume(1.0);
       await _flutterTts.setPitch(1.0);
-      
-      // Configurar idioma y velocidad según el contexto
-      final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-      if (themeProvider.currentLocale.languageCode == 'es') {
-        await _flutterTts.setLanguage('es-MX'); // Español de México suena más natural
-        await _flutterTts.setSpeechRate(0.5); // Más lento para español, suena más natural
+
+      // Configurar idioma y velocidad según el LanguageProvider
+      final languageProvider = Provider.of<LanguageProvider>(
+        context,
+        listen: false,
+      );
+      await _flutterTts.setLanguage(languageProvider.getTTSLocale());
+
+      if (languageProvider.currentLanguage == 'es') {
+        await _flutterTts.setSpeechRate(
+          0.5,
+        ); // Más lento para español, suena más natural
       } else {
-        await _flutterTts.setLanguage('en-US');
         await _flutterTts.setSpeechRate(0.6); // Velocidad normal para inglés
       }
-      
-      print("✅ TTS configurado exitosamente");
+
+      print(
+        "✅ TTS configurado exitosamente para idioma: ${languageProvider.currentLanguage}",
+      );
     } catch (e) {
       print("❌ Error configurando TTS: $e");
     }
@@ -237,15 +255,12 @@ class _TimerScreenState extends State<TimerScreen> {
   // Función para hablar la mitad del tiempo
   Future<void> _speakHalfway() async {
     try {
-      final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-      String message;
-      
-      if (themeProvider.currentLocale.languageCode == 'es') {
-        message = "Mitad del tiempo";
-      } else {
-        message = "Halfway through";
-      }
-      
+      final languageProvider = Provider.of<LanguageProvider>(
+        context,
+        listen: false,
+      );
+      String message = languageProvider.getText('halfway_point');
+
       await _flutterTts.speak(message);
       print("🎤 TTS: $message");
     } catch (e) {
@@ -256,15 +271,12 @@ class _TimerScreenState extends State<TimerScreen> {
   // Función para hablar cuando se completa el entrenamiento
   Future<void> _speakWorkoutComplete() async {
     try {
-      final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-      String message;
-      
-      if (themeProvider.currentLocale.languageCode == 'es') {
-        message = "¡Entrenamiento completado! ¡Excelente trabajo!";
-      } else {
-        message = "Workout completed! Excellent work!";
-      }
-      
+      final languageProvider = Provider.of<LanguageProvider>(
+        context,
+        listen: false,
+      );
+      String message = languageProvider.getText('workout_complete');
+
       await _flutterTts.speak(message);
       print("🎤 TTS: $message");
     } catch (e) {
@@ -275,15 +287,12 @@ class _TimerScreenState extends State<TimerScreen> {
   // Función para hablar cuando quedan 10 segundos
   Future<void> _speakTenSecondsLeft() async {
     try {
-      final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-      String message;
-      
-      if (themeProvider.currentLocale.languageCode == 'es') {
-        message = "Diez segundos restantes";
-      } else {
-        message = "Ten seconds remaining";
-      }
-      
+      final languageProvider = Provider.of<LanguageProvider>(
+        context,
+        listen: false,
+      );
+      String message = languageProvider.getText('ten_seconds_left');
+
       await _flutterTts.speak(message);
       print("🎤 TTS: $message");
     } catch (e) {
@@ -291,18 +300,47 @@ class _TimerScreenState extends State<TimerScreen> {
     }
   }
 
+  // Función para hablar cuando quedan 5 segundos
+  Future<void> _speakFiveSecondsLeft() async {
+    try {
+      final languageProvider = Provider.of<LanguageProvider>(
+        context,
+        listen: false,
+      );
+      String message = languageProvider.getText('five_seconds_left');
+
+      await _flutterTts.speak(message);
+      print("🎤 TTS: $message");
+    } catch (e) {
+      print("❌ Error con TTS five seconds: $e");
+    }
+  }
+
+  // Función para hablar cuando se acaba el tiempo
+  Future<void> _speakTimeUp() async {
+    try {
+      final languageProvider = Provider.of<LanguageProvider>(
+        context,
+        listen: false,
+      );
+      String message = languageProvider.getText('time_up');
+
+      await _flutterTts.speak(message);
+      print("🎤 TTS: $message");
+    } catch (e) {
+      print("❌ Error con TTS time up: $e");
+    }
+  }
+
   // Función para hablar cuando comienza el entrenamiento
   Future<void> _speakWorkoutStart() async {
     try {
-      final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-      String message;
-      
-      if (themeProvider.currentLocale.languageCode == 'es') {
-        message = "¡Comienza!";
-      } else {
-        message = "Start!";
-      }
-      
+      final languageProvider = Provider.of<LanguageProvider>(
+        context,
+        listen: false,
+      );
+      String message = languageProvider.getText('workout_start');
+
       await _flutterTts.speak(message);
       print("🎤 TTS: $message");
     } catch (e) {
@@ -324,6 +362,9 @@ class _TimerScreenState extends State<TimerScreen> {
 
   void _setupTimer() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    // Cargar tiempo de preparación configurable
+    _preparationTime = prefs.getInt('preparation_time') ?? 10;
 
     switch (widget.timerType) {
       case 'AMRAP':
@@ -363,6 +404,12 @@ class _TimerScreenState extends State<TimerScreen> {
     setState(() {}); // Actualizar la UI con los nuevos valores
   }
 
+  // Método para recargar configuraciones (útil cuando se cambian desde configuración)
+  void reloadConfiguration() {
+    _setupTimer();
+    _setupTts();
+  }
+
   void _startTimer() {
     if (_isPaused) {
       _isPaused = false;
@@ -373,6 +420,8 @@ class _TimerScreenState extends State<TimerScreen> {
       _lastBeepSecond = -1; // Resetear control de beeps
       _hasPlayedHalfwayBeep = false; // Resetear sonidos especiales
       _hasPlayedTenSecondsBeep = false; // Resetear anuncio de 10 segundos
+      _hasPlayedFiveSecondsBeep = false; // Resetear anuncio de 5 segundos
+      _hasPlayedTimeUpBeep = false; // Resetear anuncio de "Tiempo"
     });
 
     // Mantener la pantalla activa durante el entrenamiento
@@ -408,6 +457,12 @@ class _TimerScreenState extends State<TimerScreen> {
               _speakTenSecondsLeft(); // Anuncio de voz para 10 segundos restantes
             }
 
+            // Anuncio de voz cuando faltan 5 segundos (solo una vez)
+            if (_currentSeconds == 5 && !_hasPlayedFiveSecondsBeep) {
+              _hasPlayedFiveSecondsBeep = true;
+              _speakFiveSecondsLeft(); // Anuncio de voz para 5 segundos restantes
+            }
+
             // Sonido en cada segundo durante los últimos 10 segundos (solo una vez por segundo)
             if (_currentSeconds <= 10 &&
                 _currentSeconds > 0 &&
@@ -436,6 +491,11 @@ class _TimerScreenState extends State<TimerScreen> {
           }
         } else {
           if (!_isPreparation) {
+            // Anuncio de "Tiempo" cuando llega a 0 (solo una vez)
+            if (!_hasPlayedTimeUpBeep) {
+              _hasPlayedTimeUpBeep = true;
+              _speakTimeUp(); // Anuncio de voz para "Tiempo"
+            }
             _handleTimerComplete();
           }
         }
@@ -449,6 +509,8 @@ class _TimerScreenState extends State<TimerScreen> {
       _lastBeepSecond = -1; // Resetear control de beeps para el entrenamiento
       _hasPlayedHalfwayBeep = false; // Resetear sonidos especiales
       _hasPlayedTenSecondsBeep = false; // Resetear anuncio de 10 segundos
+      _hasPlayedFiveSecondsBeep = false; // Resetear anuncio de 5 segundos
+      _hasPlayedTimeUpBeep = false; // Resetear anuncio de "Tiempo"
 
       // Configurar el timer principal según el tipo
       switch (widget.timerType) {
@@ -504,6 +566,8 @@ class _TimerScreenState extends State<TimerScreen> {
       _lastBeepSecond = -1; // Resetear control de beeps
       _hasPlayedHalfwayBeep = false; // Resetear sonidos especiales
       _hasPlayedTenSecondsBeep = false; // Resetear anuncio de 10 segundos
+      _hasPlayedFiveSecondsBeep = false; // Resetear anuncio de 5 segundos
+      _hasPlayedTimeUpBeep = false; // Resetear anuncio de "Tiempo"
       _setupTimer();
     });
 
@@ -589,7 +653,7 @@ class _TimerScreenState extends State<TimerScreen> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        final localizations = AppLocalizations.of(context)!;
+        final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
         return AlertDialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
@@ -611,7 +675,7 @@ class _TimerScreenState extends State<TimerScreen> {
               ),
               const SizedBox(height: 12),
               Text(
-                localizations.workoutCompleted,
+                languageProvider.getText('workout_completed'),
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Colors.orange,
@@ -641,7 +705,7 @@ class _TimerScreenState extends State<TimerScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                localizations.excellentWork,
+                languageProvider.getText('excellent_work'),
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey[600],
@@ -661,7 +725,7 @@ class _TimerScreenState extends State<TimerScreen> {
                   _shareWorkout();
                 },
                 icon: const Icon(Icons.share),
-                label: Text(localizations.share),
+                label: Text(languageProvider.getText('share')),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.green,
                   side: const BorderSide(color: Colors.green),
@@ -678,7 +742,7 @@ class _TimerScreenState extends State<TimerScreen> {
                   _resetTimer();
                 },
                 icon: const Icon(Icons.refresh),
-                label: Text(localizations.repeat),
+                label: Text(languageProvider.getText('repeat')),
                 style: TextButton.styleFrom(foregroundColor: Colors.blue),
               ),
             ),
@@ -692,7 +756,7 @@ class _TimerScreenState extends State<TimerScreen> {
                   Navigator.of(context).pop(); // Volver a la pantalla principal
                 },
                 icon: const Icon(Icons.home),
-                label: Text(localizations.mainMenu),
+                label: Text(languageProvider.getText('main_menu')),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange,
                   foregroundColor: Colors.white,
@@ -746,18 +810,18 @@ class _TimerScreenState extends State<TimerScreen> {
   }
 
   String _getCompletionMessage() {
-    final localizations = AppLocalizations.of(context)!;
+    final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
     switch (widget.timerType) {
       case 'AMRAP':
-        return localizations.amrapCompleted;
+        return languageProvider.getText('amrap_completed');
       case 'EMOM':
-        return localizations.emomCompleted(_totalRounds);
+        return languageProvider.getText('emom_completed').replaceAll('{rounds}', '$_totalRounds');
       case 'TABATA':
-        return localizations.tabataCompleted(_totalRounds);
+        return languageProvider.getText('tabata_completed').replaceAll('{rounds}', '$_totalRounds');
       case 'COUNTDOWN':
-        return localizations.timeCompleted;
+        return languageProvider.getText('time_completed');
       default:
-        return localizations.excellentWork;
+        return languageProvider.getText('excellent_work');
     }
   }
 
@@ -786,31 +850,31 @@ class _TimerScreenState extends State<TimerScreen> {
   }
 
   String _getTimerSubtitle() {
-    final localizations = AppLocalizations.of(context)!;
+    final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
     switch (widget.timerType) {
       case 'AMRAP':
-        return localizations.amrapSubtitle;
+        return languageProvider.getText('amrap_description');
       case 'EMOM':
-        return localizations.emomSubtitle;
+        return languageProvider.getText('emom_description');
       case 'TABATA':
-        return localizations.tabataSubtitle;
+        return languageProvider.getText('tabata_description');
       case 'COUNTDOWN':
-        return localizations.countdownSubtitle;
+        return languageProvider.getText('countdown_description');
       default:
-        return localizations.workoutTimer;
+        return languageProvider.getText('workout_timer');
     }
   }
 
   void _shareWorkout() async {
-    final localizations = AppLocalizations.of(context)!;
+    final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
     String workoutDetails = _getWorkoutSummary();
     String shareText =
         '''
-${localizations.justCompleted}
+${languageProvider.getText('just_completed')}
 
 $workoutDetails
 
-${localizations.keepTraining}
+${languageProvider.getText('keep_training')}
 
 #WorkoutTimer #Fitness #Training #Motivation
 ''';
@@ -818,14 +882,14 @@ ${localizations.keepTraining}
     try {
       await Share.share(
         shareText,
-        subject: localizations.workoutCompletedSubject,
+        subject: languageProvider.getText('workout_completed_subject'),
       );
     } catch (e) {
       // Si falla, mostrar un mensaje de error
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(localizations.shareError),
+            content: Text(languageProvider.getText('share_error')),
             duration: const Duration(seconds: 2),
           ),
         );
@@ -834,7 +898,7 @@ ${localizations.keepTraining}
   }
 
   String _getWorkoutSummary() {
-    final localizations = AppLocalizations.of(context)!;
+    final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
     DateTime now = DateTime.now();
     String date = '${now.day}/${now.month}/${now.year}';
     String time =
@@ -843,35 +907,35 @@ ${localizations.keepTraining}
     switch (widget.timerType) {
       case 'AMRAP':
         return '''
-📊 ${localizations.type}: ${localizations.amrapDescription}
-⏱️ ${localizations.duration}: ${_formatTime(_totalSeconds)}
-📅 ${localizations.date}: $date ${localizations.at} $time
-✅ ${localizations.status}: ${localizations.completed}''';
+📊 ${languageProvider.getText('type')}: ${languageProvider.getText('amrap_description')}
+⏱️ ${languageProvider.getText('duration')}: ${_formatTime(_totalSeconds)}
+📅 ${languageProvider.getText('date')}: $date ${languageProvider.getText('at')} $time
+✅ ${languageProvider.getText('status')}: ${languageProvider.getText('completed')}''';
       case 'EMOM':
         return '''
-📊 ${localizations.type}: ${localizations.emomDescription}
-⏱️ ${localizations.durationPerRound}: ${_formatTime(_totalSeconds)}
-🔄 ${localizations.roundsCompleted}: $_totalRounds
-📅 ${localizations.date}: $date ${localizations.at} $time
-✅ ${localizations.status}: ${localizations.completed}''';
+📊 ${languageProvider.getText('type')}: ${languageProvider.getText('emom_description')}
+⏱️ ${languageProvider.getText('duration_per_round')}: ${_formatTime(_totalSeconds)}
+🔄 ${languageProvider.getText('rounds_completed')}: $_totalRounds
+📅 ${languageProvider.getText('date')}: $date ${languageProvider.getText('at')} $time
+✅ ${languageProvider.getText('status')}: ${languageProvider.getText('completed')}''';
       case 'TABATA':
         return '''
-📊 ${localizations.type}: TABATA
-⚡ ${localizations.work20s} | 😮‍💨 ${localizations.rest10s}  
-🔄 ${localizations.roundsCompleted}: $_totalRounds
-📅 ${localizations.date}: $date ${localizations.at} $time
-✅ ${localizations.status}: ${localizations.completed}''';
+📊 ${languageProvider.getText('type')}: TABATA
+${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')}  
+🔄 ${languageProvider.getText('rounds_completed')}: $_totalRounds
+📅 ${languageProvider.getText('date')}: $date ${languageProvider.getText('at')} $time
+✅ ${languageProvider.getText('status')}: ${languageProvider.getText('completed')}''';
       case 'COUNTDOWN':
         return '''
-📊 ${localizations.type}: COUNTDOWN
-⏱️ ${localizations.totalTime}: ${_formatTime(_totalSeconds)}
-📅 ${localizations.date}: $date ${localizations.at} $time
-✅ ${localizations.status}: ${localizations.completed}''';
+📊 ${languageProvider.getText('type')}: COUNTDOWN
+⏱️ ${languageProvider.getText('total_time')}: ${_formatTime(_totalSeconds)}
+📅 ${languageProvider.getText('date')}: $date ${languageProvider.getText('at')} $time
+✅ ${languageProvider.getText('status')}: ${languageProvider.getText('completed')}''';
       default:
         return '''
-📊 ${localizations.workoutTimer}
-📅 ${localizations.date}: $date ${localizations.at} $time
-✅ ${localizations.status}: ${localizations.completed}''';
+📊 ${languageProvider.getText('workout_timer')}
+📅 ${languageProvider.getText('date')}: $date ${languageProvider.getText('at')} $time
+✅ ${languageProvider.getText('status')}: ${languageProvider.getText('completed')}''';
     }
   }
 
@@ -888,7 +952,7 @@ ${localizations.keepTraining}
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
-    final localizations = AppLocalizations.of(context)!;
+    final languageProvider = Provider.of<LanguageProvider>(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -957,8 +1021,8 @@ ${localizations.keepTraining}
               _isFullScreen ? Icons.fullscreen_exit : Icons.fullscreen,
             ),
             tooltip: _isFullScreen
-                ? localizations.exitFullscreen
-                : localizations.fullscreen,
+                ? languageProvider.getText('exit_fullscreen')
+                : languageProvider.getText('fullscreen'),
           ),
         ],
       ),
@@ -1009,7 +1073,7 @@ ${localizations.keepTraining}
                             const SizedBox(width: 8),
                             Flexible(
                               child: Text(
-                                '${localizations.prepareFor} ${_getTimerSubtitle().toLowerCase()}',
+                                '${languageProvider.getText('prepare_for')} ${_getTimerSubtitle().toLowerCase()}',
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
@@ -1068,8 +1132,8 @@ ${localizations.keepTraining}
                             // Texto principal con localización
                             Text(
                               _isWorkPeriod
-                                  ? localizations.work
-                                  : localizations.rest,
+                                  ? languageProvider.getText('work')
+                                  : languageProvider.getText('rest'),
                               style: const TextStyle(
                                 fontSize: 28,
                                 fontWeight: FontWeight.bold,
@@ -1109,7 +1173,7 @@ ${localizations.keepTraining}
                           ),
                         ),
                         child: Text(
-                          localizations.roundOf
+                          languageProvider.getText('round_of')
                               .replaceAll('{current}', '$_currentRound')
                               .replaceAll('{total}', '$_totalRounds'),
                           style: TextStyle(
@@ -1163,7 +1227,7 @@ ${localizations.keepTraining}
                           onPressed: _resetTimer,
                           backgroundColor: Colors.grey[600]!,
                           icon: Icons.refresh,
-                          label: localizations.reset,
+                          label: languageProvider.getText('reset'),
                         )
                         .animate()
                         .fadeIn(duration: 600.ms, delay: 600.ms)
@@ -1177,8 +1241,8 @@ ${localizations.keepTraining}
                               : Colors.green,
                           icon: _isRunning ? Icons.pause : Icons.play_arrow,
                           label: _isRunning
-                              ? localizations.pause
-                              : localizations.start,
+                              ? languageProvider.getText('pause')
+                              : languageProvider.getText('start'),
                           isPrimary: true,
                         )
                         .animate()
@@ -1193,7 +1257,7 @@ ${localizations.keepTraining}
                           onPressed: () => Navigator.pop(context),
                           backgroundColor: Colors.red[600]!,
                           icon: Icons.stop,
-                          label: localizations.exit,
+                          label: languageProvider.getText('exit'),
                         )
                         .animate()
                         .fadeIn(duration: 600.ms, delay: 800.ms)
@@ -1209,7 +1273,8 @@ ${localizations.keepTraining}
             ConfettiEffect(
               isPlaying: _showConfetti,
               duration: 5, // 5 segundos de confetti intenso para celebraciones
-              isIntense: true, // Activar efectos intensos para finalización de entrenamientos
+              isIntense:
+                  true, // Activar efectos intensos para finalización de entrenamientos
               onComplete: () {
                 setState(() {
                   _showConfetti = false;
