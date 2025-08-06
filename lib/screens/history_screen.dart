@@ -12,14 +12,14 @@ class HistoryScreen extends StatefulWidget {
 
 class _HistoryScreenState extends State<HistoryScreen> {
   List<WorkoutHistory> _workoutHistory = [];
-  String _selectedFilter = 'Todos';
-  final List<String> _filters = [
-    'Todos',
-    'AMRAP',
-    'EMOM',
-    'TABATA',
-    'COUNTDOWN',
-  ];
+  final String _selectedFilter = 'Todos';
+  // final List<String> _filters = [
+  //   'Todos',
+  //   'AMRAP',
+  //   'EMOM',
+  //   'TABATA',
+  //   'COUNTDOWN',
+  // ];
 
   @override
   void initState() {
@@ -47,12 +47,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
     });
   }
 
-  List<WorkoutHistory> get _filteredWorkouts {
-    if (_selectedFilter == 'Todos') {
-      return _workoutHistory;
-    }
-    return _workoutHistory.where((w) => w.type == _selectedFilter).toList();
-  }
+  // List<WorkoutHistory> get _filteredWorkouts {
+  //   if (_selectedFilter == 'Todos') {
+  //     return _workoutHistory;
+  //   }
+  //   return _workoutHistory.where((w) => w.type == _selectedFilter).toList();
+  // }
 
   void _clearHistory() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
