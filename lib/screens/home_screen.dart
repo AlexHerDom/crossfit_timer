@@ -35,7 +35,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   String _getTabataSubtitle(LanguageProvider languageProvider) {
-    return '${_tabataWorkSeconds}s ${languageProvider.getText('work').toLowerCase()} / ${_tabataRestSeconds}s ${languageProvider.getText('rest').toLowerCase()}';
+    final subtitle = '${_tabataWorkSeconds}s ${languageProvider.getText('work').toLowerCase()} / ${_tabataRestSeconds}s ${languageProvider.getText('rest').toLowerCase()}';
+    // Debug: imprimir el subtítulo para verificar
+    print('🧪 DEBUG: Tabata subtitle = $subtitle (work: $_tabataWorkSeconds, rest: $_tabataRestSeconds)');
+    return subtitle;
   }
 
   @override
