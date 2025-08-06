@@ -1,0 +1,105 @@
+Analyzing crossfit_timer...                                     
+
+   info • Don't use 'BuildContext's across async gaps • lib/screens/config_screen.dart:122:19 • use_build_context_synchronously
+   info • The private field _selectedFilter could be 'final' • lib/screens/history_screen.dart:15:10 • prefer_final_fields
+warning • The value of the field '_filters' isn't used • lib/screens/history_screen.dart:16:22 • unused_field
+warning • The declaration '_filteredWorkouts' isn't referenced • lib/screens/history_screen.dart:50:28 • unused_element
+   info • Don't use 'BuildContext's across async gaps • lib/screens/history_screen.dart:65:7 • use_build_context_synchronously
+   info • Don't invoke 'print' in production code • lib/screens/home_screen.dart:40:5 • avoid_print
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/home_screen.dart:133:54 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/home_screen.dart:164:59 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/home_screen.dart:167:61 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/home_screen.dart:283:26 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/home_screen.dart:302:32 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/home_screen.dart:310:32 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/home_screen.dart:310:63 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/home_screen.dart:318:41 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/home_screen.dart:363:41 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/home_screen.dart:376:41 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/home_screen.dart:445:44 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/home_screen.dart:495:39 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/home_screen.dart:496:43 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/home_screen.dart:500:61 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/home_screen.dart:529:42 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/home_screen.dart:635:41 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/home_screen.dart:637:60 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/settings_screen.dart:88:44 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/settings_screen.dart:308:47 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/settings_screen.dart:362:51 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/settings_screen.dart:434:48 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/settings_screen.dart:476:48 • deprecated_member_use
+   info • Don't use 'BuildContext's across async gaps • lib/screens/settings_screen.dart:546:19 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/settings_screen.dart:551:30 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/settings_screen.dart:552:38 • use_build_context_synchronously
+warning • Unused import: '../localization.dart' • lib/screens/settings_screen_new.dart:6:8 • unused_import
+warning • The value of the local variable 'languageProvider' isn't used • lib/screens/settings_screen_new.dart:74:11 • unused_local_variable
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/settings_screen_new.dart:89:44 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/settings_screen_new.dart:307:47 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/settings_screen_new.dart:360:51 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/settings_screen_new.dart:432:48 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/settings_screen_new.dart:474:48 • deprecated_member_use
+   info • Don't use 'BuildContext's across async gaps • lib/screens/settings_screen_new.dart:542:19 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/settings_screen_new.dart:547:30 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/settings_screen_new.dart:548:38 • use_build_context_synchronously
+   info • Don't invoke 'print' in production code • lib/screens/timer_screen.dart:99:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/timer_screen.dart:101:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/timer_screen.dart:106:9 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/timer_screen.dart:108:9 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/timer_screen.dart:119:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/timer_screen.dart:121:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/timer_screen.dart:127:9 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/timer_screen.dart:139:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/timer_screen.dart:141:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/timer_screen.dart:147:9 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/timer_screen.dart:165:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/timer_screen.dart:167:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/timer_screen.dart:176:9 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/timer_screen.dart:188:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/timer_screen.dart:190:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/timer_screen.dart:196:9 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/timer_screen.dart:210:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/timer_screen.dart:212:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/timer_screen.dart:220:9 • avoid_print
+   info • Don't use 'BuildContext's across async gaps • lib/screens/timer_screen.dart:234:9 • use_build_context_synchronously
+   info • Don't invoke 'print' in production code • lib/screens/timer_screen.dart:247:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/timer_screen.dart:251:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/timer_screen.dart:265:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/timer_screen.dart:267:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/timer_screen.dart:281:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/timer_screen.dart:283:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/timer_screen.dart:297:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/timer_screen.dart:299:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/timer_screen.dart:313:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/timer_screen.dart:315:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/timer_screen.dart:329:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/timer_screen.dart:331:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/timer_screen.dart:345:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/timer_screen.dart:347:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/timer_screen.dart:472:15 • avoid_print
+   info • Unnecessary braces in a string interpolation • lib/screens/timer_screen.dart:472:41 • unnecessary_brace_in_string_interps
+   info • Don't invoke 'print' in production code • lib/screens/timer_screen.dart:542:5 • avoid_print
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/timer_screen.dart:670:40 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/timer_screen.dart:697:40 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/timer_screen.dart:1028:22 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/timer_screen.dart:1067:45 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/timer_screen.dart:1068:49 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/timer_screen.dart:1077:52 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/timer_screen.dart:1127:48 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/timer_screen.dart:1128:51 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/timer_screen.dart:1131:49 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/timer_screen.dart:1132:49 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/timer_screen.dart:1141:36 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/timer_screen.dart:1174:45 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/timer_screen.dart:1187:51 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/timer_screen.dart:1190:53 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/timer_screen.dart:1324:40 • deprecated_member_use
+   info • 'red' is deprecated and shouldn't be used. Use (*.r * 255.0).round() & 0xff • lib/theme_provider.dart:88:25 • deprecated_member_use
+   info • 'green' is deprecated and shouldn't be used. Use (*.g * 255.0).round() & 0xff • lib/theme_provider.dart:88:40 • deprecated_member_use
+   info • 'blue' is deprecated and shouldn't be used. Use (*.b * 255.0).round() & 0xff • lib/theme_provider.dart:88:57 • deprecated_member_use
+   info • 'value' is deprecated and shouldn't be used. Use component accessors like .r or .g, or toARGB32 for an explicit conversion • lib/theme_provider.dart:102:32 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/widgets/animated_circular_timer.dart:116:45 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/widgets/animated_circular_timer.dart:133:49 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/widgets/animated_circular_timer.dart:146:57 • deprecated_member_use
+warning • Unused import: 'package:flutter/material.dart' • test/widget_test.dart:8:8 • unused_import
+
+101 issues found. (ran in 4.4s)

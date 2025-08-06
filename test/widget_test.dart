@@ -7,24 +7,32 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:crossfit_timer/main.dart';
+import 'package:provider/provider.dart';
+import 'package:workout_timer/main.dart';
+import 'package:workout_timer/theme_provider.dart';
+import 'package:workout_timer/language_provider.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+  testWidgets('CrossFit Timer app starts correctly', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (context) => ThemeProvider()),
+          ChangeNotifierProvider(create: (context) => LanguageProvider()),
+        ],
+        child: const CrossFitTimerApp(),
+      ),
+    );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Wait for the app to fully load
+    await tester.pumpAndSettle();
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Verify that the home screen loads with timer options
+    expect(find.text('Workout Timer'), findsAny);
+    expect(find.text('AMRAP'), findsOneWidget);
+    expect(find.text('EMOM'), findsOneWidget);
+    expect(find.text('TABATA'), findsOneWidget);
+    expect(find.text('COUNTDOWN'), findsOneWidget);
   });
 }
