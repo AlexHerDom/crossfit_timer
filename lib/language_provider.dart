@@ -139,7 +139,7 @@ class LanguageProvider extends ChangeNotifier {
 
         // Home Screen
         'workout_timer': 'Workout Timer',
-        'no_subscriptions': 'Aplicación gratuita y completa',
+        'time_train': 'Es hora de entrenar',
         'amrap_title': 'AMRAP',
         'amrap_subtitle': 'Máximas rondas posibles',
         'emom_title': 'EMOM',
@@ -192,7 +192,8 @@ class LanguageProvider extends ChangeNotifier {
         'vibration_enabled': 'Vibración habilitada',
         'vibration_enabled_desc': 'Vibrar durante los entrenamientos',
         'keep_screen_active': 'Mantener pantalla activa',
-        'keep_screen_active_desc': 'La pantalla no se apagará durante entrenamientos',
+        'keep_screen_active_desc':
+            'La pantalla no se apagará durante entrenamientos',
         'preparation_time_title': 'Tiempo de preparación',
         'preparation_time_desc': 'Segundos antes de iniciar el entrenamiento',
         'color_theme': 'Tema de color',
@@ -302,7 +303,7 @@ class LanguageProvider extends ChangeNotifier {
 
         // Home Screen
         'workout_timer': 'Workout Timer',
-        'no_subscriptions': 'Free and complete app',
+        'time_train': 'Time to train',
         'amrap_title': 'AMRAP',
         'amrap_subtitle': 'As Many Rounds As Possible',
         'emom_title': 'EMOM',

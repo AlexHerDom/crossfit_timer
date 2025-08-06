@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'timer_screen.dart';
 import 'config_screen.dart';
 import 'history_screen.dart';
@@ -16,6 +17,27 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  int _tabataWorkSeconds = 20;
+  int _tabataRestSeconds = 10;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTabataConfig();
+  }
+
+  void _loadTabataConfig() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _tabataWorkSeconds = prefs.getInt('tabata_work') ?? 20;
+      _tabataRestSeconds = prefs.getInt('tabata_rest') ?? 10;
+    });
+  }
+
+  String _getTabataSubtitle(LanguageProvider languageProvider) {
+    return '${_tabataWorkSeconds}s ${languageProvider.getText('work').toLowerCase()} / ${_tabataRestSeconds}s ${languageProvider.getText('rest').toLowerCase()}';
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
@@ -153,7 +175,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            languageProvider.getText('no_subscriptions'),
+                            languageProvider.getText('time_train'),
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
@@ -208,7 +230,7 @@ class _HomeScreenState extends State<HomeScreen> {
             _buildTimerButton(
                   context,
                   title: languageProvider.getText('tabata_title'),
-                  subtitle: languageProvider.getText('tabata_subtitle'),
+                  subtitle: _getTabataSubtitle(languageProvider),
                   icon: Icons.flash_on,
                   color: Colors.red,
                   onTap: () => _navigateToTimer(context, 'TABATA'),
@@ -375,13 +397,18 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // Función para abrir la configuración
-  void _openConfigScreen(BuildContext context, String timerType) {
-    Navigator.push(
+  void _openConfigScreen(BuildContext context, String timerType) async {
+    await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => ConfigScreen(timerType: timerType),
       ),
     );
+    
+    // Recargar la configuración de Tabata cuando regresa de la configuración
+    if (timerType == 'TABATA') {
+      _loadTabataConfig();
+    }
   }
 
   void _showAboutDialog() {

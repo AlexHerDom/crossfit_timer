@@ -513,15 +513,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _resetToDefaults() {
-    final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
+    final languageProvider = Provider.of<LanguageProvider>(
+      context,
+      listen: false,
+    );
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(languageProvider.getText('restore_defaults_title')),
-          content: Text(
-            languageProvider.getText('restore_defaults_message'),
-          ),
+          content: Text(languageProvider.getText('restore_defaults_message')),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -550,7 +551,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('✅ ${languageProvider.getText('settings_restored')}'),
+                    content: Text(
+                      '✅ ${languageProvider.getText('settings_restored')}',
+                    ),
                     duration: Duration(seconds: 2),
                   ),
                 );
