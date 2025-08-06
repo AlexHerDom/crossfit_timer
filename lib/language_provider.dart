@@ -192,11 +192,11 @@ class LanguageProvider extends ChangeNotifier {
         'vibration_enabled': 'Vibración habilitada',
         'vibration_enabled_desc': 'Vibrar durante los entrenamientos',
         'keep_screen_active': 'Mantener pantalla activa',
-        'keep_screen_active_desc':
-            'La pantalla no se apagará durante entrenamientos',
+        'keep_screen_active_desc': 'La pantalla no se apagará durante entrenamientos',
         'preparation_time_title': 'Tiempo de preparación',
         'preparation_time_desc': 'Segundos antes de iniciar el entrenamiento',
         'color_theme': 'Tema de color',
+        'language_section': 'Idioma / Language',
         'restore_defaults_button': 'Restaurar valores por defecto',
         'restore_defaults_title': 'Restaurar valores por defecto',
         'restore_defaults_message':
@@ -209,16 +209,9 @@ class LanguageProvider extends ChangeNotifier {
         'developer': 'Desarrollador: CrossFit Timer Team',
         'app_description':
             'Esta aplicación está diseñada para ayudarte con tus entrenamientos de CrossFit y fitness.',
-        'sound': 'Sonido',
-        'vibration': 'Vibración',
-        'keep_screen_on': 'Mantener pantalla encendida',
-        'beep_volume': 'Volumen de beeps',
-        'language': 'Idioma',
-        'appearance': 'Apariencia',
-        'restore_defaults': 'Restaurar valores por defecto',
-        'language_changed': 'Idioma cambiado a',
-        'language_applies_to':
-            'El idioma se aplica a los avisos de voz del entrenamiento',
+        'sec_suffix': 'seg',
+        'seconds_suffix': 'segundos',
+        'rounds_suffix': 'rondas',
 
         // About Dialog
         'timer_number_one': 'El Timer #1 para CrossFit',

@@ -113,18 +113,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
         padding: const EdgeInsets.all(16.0),
         children: [
           // Sección de Audio
-          _buildSectionHeader('🔊 Audio'),
+          _buildSectionHeader(languageProvider.getText('audio_section')),
           _buildSwitchTile(
-            'Sonidos habilitados',
-            'Reproducir beeps durante los entrenamientos',
+            languageProvider.getText('sounds_enabled'),
+            languageProvider.getText('sounds_enabled_desc'),
             _soundEnabled,
             (value) => setState(() => _soundEnabled = value),
             Icons.volume_up,
           ),
           if (_soundEnabled)
             _buildSliderTile(
-              'Volumen de beeps',
-              'Ajusta el volumen de los sonidos',
+              languageProvider.getText('beep_volume_title'),
+              languageProvider.getText('beep_volume_desc'),
               _beepVolume,
               0.0,
               1.0,
@@ -135,10 +135,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 20),
 
           // Sección de Feedback
-          _buildSectionHeader('📳 Feedback'),
+          _buildSectionHeader(languageProvider.getText('feedback_section')),
           _buildSwitchTile(
-            'Vibración habilitada',
-            'Vibrar durante los entrenamientos',
+            languageProvider.getText('vibration_enabled'),
+            languageProvider.getText('vibration_enabled_desc'),
             _vibrationEnabled,
             (value) => setState(() => _vibrationEnabled = value),
             Icons.vibration,
@@ -147,10 +147,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 20),
 
           // Sección de Pantalla
-          _buildSectionHeader('📱 Pantalla'),
+          _buildSectionHeader(languageProvider.getText('screen_section')),
           _buildSwitchTile(
-            'Mantener pantalla activa',
-            'La pantalla no se apagará durante entrenamientos',
+            languageProvider.getText('keep_screen_active'),
+            languageProvider.getText('keep_screen_active_desc'),
             _keepScreenOn,
             (value) => setState(() => _keepScreenOn = value),
             Icons.screen_lock_portrait,
@@ -159,22 +159,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 20),
 
           // Sección de Entrenamiento
-          _buildSectionHeader('⏱️ Entrenamiento'),
+          _buildSectionHeader(languageProvider.getText('training_section')),
           _buildSliderTile(
-            'Tiempo de preparación',
-            'Segundos antes de iniciar el entrenamiento',
+            languageProvider.getText('preparation_time_title'),
+            languageProvider.getText('preparation_time_desc'),
             _preparationTime.toDouble(),
             5.0,
             30.0,
             (value) => setState(() => _preparationTime = value.round()),
             Icons.timer,
-            suffix: ' seg',
+            suffix: ' ${languageProvider.getText('sec_suffix')}',
           ),
 
           const SizedBox(height: 20),
 
           // Sección de Tema
-          _buildSectionHeader('🎨 Apariencia'),
+          _buildSectionHeader(languageProvider.getText('appearance_section')),
           _buildThemeSelector(themeProvider),
 
           const SizedBox(height: 20),
@@ -189,7 +189,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: ElevatedButton.icon(
               onPressed: _resetToDefaults,
               icon: const Icon(Icons.restore),
-              label: const Text('Restaurar valores por defecto'),
+              label: Text(languageProvider.getText('restore_defaults_button')),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.grey[600],
                 foregroundColor: Colors.white,
@@ -314,6 +314,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildThemeSelector(ThemeProvider themeProvider) {
+    final languageProvider = Provider.of<LanguageProvider>(context);
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: Padding(
@@ -325,8 +326,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 Icon(Icons.palette, color: _getThemeColor()),
                 const SizedBox(width: 12),
-                const Text(
-                  'Tema de color',
+                Text(
+                  languageProvider.getText('color_theme'),
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                 ),
               ],
@@ -410,8 +411,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: [
                   Icon(Icons.language, color: _getThemeColor()),
                   const SizedBox(width: 12),
-                  const Text(
-                    'Idioma / Language',
+                  Text(
+                    languageProvider.getText('language_section'),
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ],
@@ -512,18 +513,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _resetToDefaults() {
+    final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Restaurar valores por defecto'),
-          content: const Text(
-            '¿Estás seguro de que quieres restaurar todas las configuraciones a sus valores por defecto?',
+          title: Text(languageProvider.getText('restore_defaults_title')),
+          content: Text(
+            languageProvider.getText('restore_defaults_message'),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancelar'),
+              child: Text(languageProvider.getText('cancel')),
             ),
             ElevatedButton(
               onPressed: () async {
@@ -547,8 +549,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('✅ Configuraciones restauradas'),
+                  SnackBar(
+                    content: Text('✅ ${languageProvider.getText('settings_restored')}'),
                     duration: Duration(seconds: 2),
                   ),
                 );
@@ -557,7 +559,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 backgroundColor: _getThemeColor(),
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Restaurar'),
+              child: Text(languageProvider.getText('restore')),
             ),
           ],
         );
@@ -566,6 +568,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildInfoSection() {
+    final languageProvider = Provider.of<LanguageProvider>(context);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -576,18 +579,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 Icon(Icons.info_outline, color: _getThemeColor()),
                 const SizedBox(width: 12),
-                const Text(
-                  'Información de la App',
+                Text(
+                  languageProvider.getText('app_info'),
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            const Text('Versión: 1.0.0'),
-            const Text('Desarrollador: CrossFit Timer Team'),
+            Text(languageProvider.getText('version')),
+            Text(languageProvider.getText('developer')),
             const SizedBox(height: 8),
-            const Text(
-              'Esta aplicación está diseñada para ayudarte con tus entrenamientos de CrossFit y fitness.',
+            Text(
+              languageProvider.getText('app_description'),
               style: TextStyle(fontSize: 14, color: Colors.grey),
             ),
           ],

@@ -653,7 +653,10 @@ class _TimerScreenState extends State<TimerScreen> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
+        final languageProvider = Provider.of<LanguageProvider>(
+          context,
+          listen: false,
+        );
         return AlertDialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
@@ -810,14 +813,21 @@ class _TimerScreenState extends State<TimerScreen> {
   }
 
   String _getCompletionMessage() {
-    final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
+    final languageProvider = Provider.of<LanguageProvider>(
+      context,
+      listen: false,
+    );
     switch (widget.timerType) {
       case 'AMRAP':
         return languageProvider.getText('amrap_completed');
       case 'EMOM':
-        return languageProvider.getText('emom_completed').replaceAll('{rounds}', '$_totalRounds');
+        return languageProvider
+            .getText('emom_completed')
+            .replaceAll('{rounds}', '$_totalRounds');
       case 'TABATA':
-        return languageProvider.getText('tabata_completed').replaceAll('{rounds}', '$_totalRounds');
+        return languageProvider
+            .getText('tabata_completed')
+            .replaceAll('{rounds}', '$_totalRounds');
       case 'COUNTDOWN':
         return languageProvider.getText('time_completed');
       default:
@@ -850,7 +860,10 @@ class _TimerScreenState extends State<TimerScreen> {
   }
 
   String _getTimerSubtitle() {
-    final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
+    final languageProvider = Provider.of<LanguageProvider>(
+      context,
+      listen: false,
+    );
     switch (widget.timerType) {
       case 'AMRAP':
         return languageProvider.getText('amrap_description');
@@ -866,7 +879,10 @@ class _TimerScreenState extends State<TimerScreen> {
   }
 
   void _shareWorkout() async {
-    final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
+    final languageProvider = Provider.of<LanguageProvider>(
+      context,
+      listen: false,
+    );
     String workoutDetails = _getWorkoutSummary();
     String shareText =
         '''
@@ -898,7 +914,10 @@ ${languageProvider.getText('keep_training')}
   }
 
   String _getWorkoutSummary() {
-    final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
+    final languageProvider = Provider.of<LanguageProvider>(
+      context,
+      listen: false,
+    );
     DateTime now = DateTime.now();
     String date = '${now.day}/${now.month}/${now.year}';
     String time =
@@ -1173,7 +1192,8 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                           ),
                         ),
                         child: Text(
-                          languageProvider.getText('round_of')
+                          languageProvider
+                              .getText('round_of')
                               .replaceAll('{current}', '$_currentRound')
                               .replaceAll('{total}', '$_totalRounds'),
                           style: TextStyle(
