@@ -598,12 +598,14 @@ class _TimerScreenState extends State<TimerScreen> {
       _isRunningDistance = false; // Cambiar a modo descanso
       _currentSeconds = _restSeconds; // Configurar tiempo de descanso
     });
-    
+
     // Sonido y vibración para marcar el cambio a descanso
     HapticFeedback.mediumImpact();
     _playCompletionSound();
-    
-    print("🏃‍♂️ Distancia completada! Iniciando descanso de $_restSeconds segundos");
+
+    print(
+      "🏃‍♂️ Distancia completada! Iniciando descanso de $_restSeconds segundos",
+    );
   }
 
   void _handleTimerComplete() async {
@@ -889,10 +891,20 @@ class _TimerScreenState extends State<TimerScreen> {
 
   Color _getTimerColor() {
     final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-    if (widget.timerType == 'TABATA') {
-      return _isWorkPeriod ? Colors.red : Colors.blue;
+    
+    // Paleta unificada: usar solo el color primario y grises
+    switch (widget.timerType) {
+      case 'TABATA':
+        // Para Tabata, usar tonos del color primario en lugar de rojo/azul
+        return _isWorkPeriod 
+          ? themeProvider.primaryColor 
+          : themeProvider.primaryColor.withOpacity(0.6);
+      case 'RUNNING':
+        // Para Running, usar el color primario
+        return themeProvider.primaryColor;
+      default:
+        return themeProvider.primaryColor;
     }
-    return themeProvider.primaryColor;
   }
 
   IconData _getTimerIcon() {
@@ -1121,41 +1133,26 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                         ),
                         margin: const EdgeInsets.symmetric(horizontal: 10),
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.orange.withOpacity(0.2),
-                              Colors.deepOrange.withOpacity(0.15),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
+                          color: Colors.grey.withOpacity(0.1), // Color neutro
                           borderRadius: BorderRadius.circular(25),
-                          border: Border.all(color: Colors.orange, width: 2),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.orange.withOpacity(0.3),
-                              blurRadius: 10,
-                              spreadRadius: 2,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
+                          border: Border.all(color: Colors.grey.withOpacity(0.3), width: 1),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
                               Icons.sports_gymnastics,
-                              color: Colors.orange,
+                              color: Colors.grey[600], // Color neutro
                               size: 22,
                             ),
                             const SizedBox(width: 8),
                             Flexible(
                               child: Text(
                                 '${languageProvider.getText('prepare_for')} ${_getTimerSubtitle().toLowerCase()}',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.orange,
+                                  color: Colors.grey[700], // Color neutro
                                 ),
                                 textAlign: TextAlign.center,
                                 maxLines: 2,
@@ -1233,7 +1230,7 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                         color: Colors.white.withOpacity(0.6),
                       ),
 
-                // Información específica para RUNNING
+                // Información específica para RUNNING - Diseño simplificado
                 if (widget.timerType == 'RUNNING' && !_isPreparation)
                   Container(
                         padding: const EdgeInsets.symmetric(
@@ -1241,41 +1238,38 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                           vertical: 12,
                         ),
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: _isRunningDistance
-                                ? [Colors.purple.withOpacity(0.9), Colors.deepPurple.withOpacity(0.9)]
-                                : [Colors.green.withOpacity(0.9), Colors.teal.withOpacity(0.9)],
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                          ),
+                          color: _getTimerColor().withOpacity(0.1), // Color del tema suave
                           borderRadius: BorderRadius.circular(25),
-                          boxShadow: [
-                            BoxShadow(
-                              color: (_isRunningDistance ? Colors.purple : Colors.green).withOpacity(0.3),
-                              blurRadius: 10,
-                              spreadRadius: 2,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
+                          border: Border.all(
+                            color: _getTimerColor().withOpacity(0.3), 
+                            width: 1
+                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              _isRunningDistance ? Icons.directions_run : Icons.self_improvement,
-                              color: Colors.white,
+                              _isRunningDistance
+                                  ? Icons.directions_run
+                                  : Icons.self_improvement,
+                              color: _getTimerColor(), // Color del tema
                               size: 22,
                             ),
                             const SizedBox(width: 8),
                             // Texto principal con información específica de Running
                             Text(
                               _isRunningDistance
-                                  ? languageProvider.getText('run_distance').replaceAll('{distance}', _targetDistance.toString())
+                                  ? languageProvider
+                                        .getText('run_distance')
+                                        .replaceAll(
+                                          '{distance}',
+                                          _targetDistance.toString(),
+                                        )
                                   : languageProvider.getText('running_rest'),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                color: _getTimerColor(), // Color del tema
                                 letterSpacing: 1.5,
                               ),
                             ),
@@ -1359,7 +1353,9 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                 const SizedBox(height: 60),
 
                 // Botón específico para RUNNING - Versión limpia sin info de ronda
-                if (widget.timerType == 'RUNNING' && _isRunningDistance && _isRunning)
+                if (widget.timerType == 'RUNNING' &&
+                    _isRunningDistance &&
+                    _isRunning)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 20),
                     child: SizedBox(
@@ -1367,14 +1363,17 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                       child: ElevatedButton(
                         onPressed: _completeRunningDistance,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF2E7D32), // Verde profesional
+                          backgroundColor: _getTimerColor(), // Usar color del tema
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                           elevation: 3,
                           shadowColor: Colors.black26,
-                          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                            horizontal: 20,
+                          ),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -1397,9 +1396,9 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                                   ),
                                 ),
                                 Text(
-                                  languageProvider.currentLanguage == 'es' 
-                                    ? 'Iniciar descanso' 
-                                    : 'Start rest period',
+                                  languageProvider.currentLanguage == 'es'
+                                      ? 'Iniciar descanso'
+                                      : 'Start rest period',
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w400,

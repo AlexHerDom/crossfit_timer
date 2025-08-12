@@ -80,8 +80,8 @@ class _ConfigScreenState extends State<ConfigScreen> {
             .toString();
         break;
       case 'RUNNING':
-        _runningDistanceController.text = (prefs.getInt('running_distance') ?? 400)
-            .toString();
+        _runningDistanceController.text =
+            (prefs.getInt('running_distance') ?? 400).toString();
         _runningRestController.text = (prefs.getInt('running_rest') ?? 60)
             .toString();
         _roundsController.text = (prefs.getInt('running_rounds') ?? 5)
@@ -139,10 +139,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
           'running_rest',
           int.parse(_runningRestController.text),
         );
-        await prefs.setInt(
-          'running_rounds',
-          int.parse(_roundsController.text),
-        );
+        await prefs.setInt('running_rounds', int.parse(_roundsController.text));
         break;
     }
 
@@ -219,7 +216,8 @@ class _ConfigScreenState extends State<ConfigScreen> {
               const SizedBox(height: 30),
 
               // Tiempo de preparación (común para todos excepto COUNTDOWN y RUNNING)
-              if (widget.timerType != 'COUNTDOWN' && widget.timerType != 'RUNNING') ...[
+              if (widget.timerType != 'COUNTDOWN' &&
+                  widget.timerType != 'RUNNING') ...[
                 _buildTimeField(
                   languageProvider.getText('preparation_time'),
                   _preparationController,
