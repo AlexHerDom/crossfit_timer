@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrossFit Timer Pro - Icono Actual Mejorado</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        canvas {
+            border: 2px solid #ddd;
+            margin: 10px;
+            border-radius: 20px;
+        }
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .generate { background: #4CAF50; color: white; }
+        .download { background: #2196F3; color: white; }
+        .comparison {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .version {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏋️‍♂️ CrossFit Timer Pro - Icono Actual con Elementos Más Grandes</h1>
+        
+        <div class="controls">
+            <button class="generate" onclick="generateCurrentIconBigger()">🔍 Generar Icono Actual MÁS GRANDE</button>
+            <button class="download" onclick="downloadIcon()">💾 Descargar PNG 1024x1024</button>
+        </div>
+
+        <div class="comparison">
+            <div class="version">
+                <h3>📱 Nuevo - Elementos Más Grandes</h3>
+                <canvas id="iconCanvas" width="512" height="512"></canvas>
+            </div>
+        </div>
+        
+        <h3>🔧 Ajustes Aplicados al Icono Actual:</h3>
+        <ul>
+            <li><strong>Pesas más grandes</strong> - Aumentadas 40% para mejor visibilidad</li>
+            <li><strong>Texto más bold</strong> - Fuentes más gruesas y grandes</li>
+            <li><strong>Barra de pesas más gruesa</strong> - Mejor definición</li>
+            <li><strong>Círculos más prominentes</strong> - Bordes más visibles</li>
+            <li><strong>Cronómetro más grande</strong> - Elementos centrales ampliados</li>
+        </ul>
+    </div>
+
+    <script>
+        function generateCurrentIconBigger() {
+            const canvas = document.getElementById('iconCanvas');
+            const ctx = canvas.getContext('2d');
+            const size = 512;
+            
+            // Limpiar canvas
+            ctx.clearRect(0, 0, size, size);
+            
+            // MANTENER EL FONDO ACTUAL - Gradiente negro a gris
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#1a1a1a');
+            gradient.addColorStop(0.5, '#2d2d2d');
+            gradient.addColorStop(1, '#0f0f0f');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+            
+            // MANTENER LOS CÍRCULOS ACTUALES pero más gruesos
+            // Círculo exterior naranja - MÁS GRUESO
+            ctx.strokeStyle = '#ff6b35';
+            ctx.lineWidth = 12; // Era 8, ahora 12
+            ctx.beginPath();
+            ctx.arc(size/2, size/2, size/2 - 20, 0, 2 * Math.PI);
+            ctx.stroke();
+            
+            // Círculo interior amarillo - MÁS GRUESO  
+            ctx.strokeStyle = '#ffaa00';
+            ctx.lineWidth = 8; // Era 5, ahora 8
+            ctx.beginPath();
+            ctx.arc(size/2, size/2, size/2 - 60, 0, 2 * Math.PI);
+            ctx.stroke();
+            
+            // CRONÓMETRO CENTRAL - MUCHO MÁS GRANDE
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 48px Arial'; // Era 32px, ahora 48px (50% más grande)
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('00:00', size/2, size/2 - 20);
+            
+            // Texto "TIMER" - MÁS GRANDE
+            ctx.fillStyle = '#ff6b35';
+            ctx.font = 'bold 28px Arial'; // Era 18px, ahora 28px (55% más grande)
+            ctx.fillText('TIMER', size/2, size/2 + 20);
+            
+            // PESAS ACTUALES pero MÁS GRANDES (40% más grandes)
+            const originalScale = 1.4; // 40% más grande
+            
+            // Barra central - MÁS GRUESA
+            ctx.fillStyle = '#ffaa00';
+            const barWidth = 200 * originalScale;
+            const barHeight = 8 * originalScale; // Era 6, ahora más gruesa
+            const barX = (size - barWidth) / 2;
+            const barY = 140;
+            ctx.fillRect(barX, barY, barWidth, barHeight);
+            
+            // Discos de pesas - MÁS GRANDES
+            const diskWidth = 30 * originalScale; // Era 24
+            const diskHeight = 40 * originalScale; // Era 32
+            
+            // Disco izquierdo
+            ctx.fillStyle = '#ff6b35';
+            ctx.fillRect(barX - diskWidth + 5, barY - 16, diskWidth, diskHeight);
+            ctx.fillStyle = '#ffaa00';
+            ctx.fillRect(barX - diskWidth + 10, barY - 12, diskWidth - 10, diskHeight - 8);
+            
+            // Disco derecho  
+            ctx.fillStyle = '#ff6b35';
+            ctx.fillRect(barX + barWidth - 5, barY - 16, diskWidth, diskHeight);
+            ctx.fillStyle = '#ffaa00';
+            ctx.fillRect(barX + barWidth, barY - 12, diskWidth - 10, diskHeight - 8);
+            
+            // CRONÓMETROS ESQUINAS - MÁS GRANDES
+            const stopwatchSize = 35; // Era 25, ahora 35
+            drawBiggerStopwatch(ctx, 80, 340, stopwatchSize);
+            drawBiggerStopwatch(ctx, size - 80 - stopwatchSize, 340, stopwatchSize);
+            
+            console.log('✅ Icono actual mejorado: elementos 40% más grandes, manteniendo el diseño original');
+        }
+        
+        function drawBiggerStopwatch(ctx, x, y, size) {
+            ctx.save();
+            
+            // Círculo del cronómetro - MÁS GRUESO
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 3; // Era 2, ahora 3
+            ctx.beginPath();
+            ctx.arc(x + size/2, y + size/2, size/2 - 3, 0, 2 * Math.PI);
+            ctx.stroke();
+            
+            // Manecillas - MÁS GRUESAS
+            ctx.lineWidth = 2.5; // Era 1.5, ahora 2.5
+            ctx.beginPath();
+            ctx.moveTo(x + size/2, y + size/2);
+            ctx.lineTo(x + size/2 + 8, y + size/2 - 6); // Proporcionalmente más grande
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(x + size/2, y + size/2);
+            ctx.lineTo(x + size/2 + 4, y + size/2 + 8); // Proporcionalmente más grande
+            ctx.stroke();
+            
+            // Botón superior - MÁS GRANDE
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(x + size/2 - 2, y - 3, 4, 6); // Más grande
+            
+            ctx.restore();
+        }
+        
+        function downloadIcon() {
+            const canvas = document.getElementById('iconCanvas');
+            const link = document.createElement('a');
+            link.download = 'crossfit_timer_pro_icon_actual_grande.png';
+            link.href = canvas.toDataURL();
+            link.click();
+            console.log('📥 Icono actual mejorado descargado');
+        }
+        
+        // Generar automáticamente al cargar
+        window.onload = function() {
+            generateCurrentIconBigger();
+        };
+    </script>
+</body>
+</html>

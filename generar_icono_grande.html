@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrossFit Timer Pro - Icono Grande y Visible</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        canvas {
+            border: 2px solid #ddd;
+            margin: 10px;
+            border-radius: 20px;
+        }
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .generate { background: #4CAF50; color: white; }
+        .download { background: #2196F3; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏋️‍♂️ CrossFit Timer Pro - Icono Mejorado (Más Visible)</h1>
+        
+        <div class="controls">
+            <button class="generate" onclick="generateIcon()">🎨 Generar Icono Grande</button>
+            <button class="download" onclick="downloadIcon()">💾 Descargar PNG 1024x1024</button>
+        </div>
+
+        <canvas id="iconCanvas" width="1024" height="1024"></canvas>
+        
+        <h3>✨ Mejoras del Nuevo Icono:</h3>
+        <ul>
+            <li><strong>Elementos más grandes</strong> - Mejor visibilidad en tamaños pequeños</li>
+            <li><strong>Contraste mejorado</strong> - Colores más definidos</li>
+            <li><strong>Texto más bold</strong> - Mayor legibilidad</li>
+            <li><strong>Bordes más gruesos</strong> - Mejor definición</li>
+        </ul>
+    </div>
+
+    <script>
+        function generateIcon() {
+            const canvas = document.getElementById('iconCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Limpiar canvas
+            ctx.clearRect(0, 0, 1024, 1024);
+            
+            // Fondo con gradiente más dramático
+            const gradient = ctx.createLinearGradient(0, 0, 1024, 1024);
+            gradient.addColorStop(0, '#1a1a1a');
+            gradient.addColorStop(0.5, '#2d2d2d');
+            gradient.addColorStop(1, '#0d0d0d');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 1024, 1024);
+            
+            // Círculo exterior más grueso y visible
+            ctx.strokeStyle = '#ff6b35';
+            ctx.lineWidth = 24; // Más grueso
+            ctx.beginPath();
+            ctx.arc(512, 512, 480, 0, 2 * Math.PI);
+            ctx.stroke();
+            
+            // Círculo interior
+            ctx.strokeStyle = '#ffaa00';
+            ctx.lineWidth = 16;
+            ctx.beginPath();
+            ctx.arc(512, 512, 400, 0, 2 * Math.PI);
+            ctx.stroke();
+            
+            // Temporizador central MÁS GRANDE
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 160px Arial'; // Aumentado de 120px
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('00:00', 512, 460);
+            
+            // Texto "TIMER" más grande y visible
+            ctx.fillStyle = '#ff6b35';
+            ctx.font = 'bold 90px Arial'; // Aumentado de 60px
+            ctx.fillText('TIMER', 512, 580);
+            
+            // Pesas/barbell más grandes y visibles
+            // Barra central más gruesa
+            ctx.fillStyle = '#ffaa00';
+            ctx.fillRect(200, 300, 624, 24); // Más gruesa
+            
+            // Discos de pesas MÁS GRANDES
+            // Disco izquierdo
+            ctx.fillStyle = '#ff6b35';
+            ctx.fillRect(140, 250, 80, 124); // Más grande
+            ctx.fillStyle = '#ffaa00';
+            ctx.fillRect(150, 270, 60, 84);
+            
+            // Disco derecho  
+            ctx.fillStyle = '#ff6b35';
+            ctx.fillRect(804, 250, 80, 124); // Más grande
+            ctx.fillStyle = '#ffaa00';
+            ctx.fillRect(814, 270, 60, 84);
+            
+            // Iconos de cronómetro más visibles en las esquinas
+            drawStopwatchIcon(ctx, 200, 650, 60); // Más grande
+            drawStopwatchIcon(ctx, 764, 650, 60); // Más grande
+            
+            // Efectos de brillo para mayor visibilidad
+            ctx.shadowColor = '#ff6b35';
+            ctx.shadowBlur = 20;
+            ctx.strokeStyle = '#ff6b35';
+            ctx.lineWidth = 8;
+            ctx.beginPath();
+            ctx.arc(512, 512, 440, 0, 2 * Math.PI);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+            
+            console.log('✅ Icono mejorado generado con elementos más grandes y visibles');
+        }
+        
+        function drawStopwatchIcon(ctx, x, y, size) {
+            ctx.save();
+            ctx.fillStyle = '#ffffff';
+            
+            // Círculo del cronómetro más grueso
+            ctx.lineWidth = 6; // Más grueso
+            ctx.strokeStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(x + size/2, y + size/2, size/2 - 6, 0, 2 * Math.PI);
+            ctx.stroke();
+            
+            // Manecillas más gruesas
+            ctx.lineWidth = 4; // Más gruesas
+            ctx.beginPath();
+            ctx.moveTo(x + size/2, y + size/2);
+            ctx.lineTo(x + size/2 + 15, y + size/2 - 10);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(x + size/2, y + size/2);
+            ctx.lineTo(x + size/2 + 8, y + size/2 + 12);
+            ctx.stroke();
+            
+            ctx.restore();
+        }
+        
+        function downloadIcon() {
+            const canvas = document.getElementById('iconCanvas');
+            const link = document.createElement('a');
+            link.download = 'crossfit_timer_pro_icon_grande_1024.png';
+            link.href = canvas.toDataURL();
+            link.click();
+            console.log('📥 Icono descargado como PNG 1024x1024');
+        }
+        
+        // Generar automáticamente al cargar
+        window.onload = function() {
+            generateIcon();
+        };
+    </script>
+</body>
+</html>

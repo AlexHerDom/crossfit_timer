@@ -1,4 +1,4 @@
-package com.example.crossfit_timer
+package com.alexherdom.crossfit_timer_pro
 
 import io.flutter.embedding.android.FlutterActivity
 
