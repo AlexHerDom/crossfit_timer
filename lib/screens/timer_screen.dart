@@ -7,6 +7,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:fl_chart/fl_chart.dart';
 import '../widgets/animated_circular_timer.dart';
 import '../widgets/confetti_effect.dart';
 import '../theme_provider.dart';
@@ -41,6 +42,7 @@ class _TimerScreenState extends State<TimerScreen> {
   bool _isRunningDistance = true; // true = corriendo, false = descansando
   int _targetDistance = 400; // metros objetivo
   int _restSeconds = 120; // segundos de descanso
+  bool _showRunningSummary = false; // Para mostrar resumen final en lugar del timer
   
   // Variables para tracking de rendimiento
   List<int> _roundTimes = []; // Tiempos de cada ronda en segundos
@@ -703,6 +705,7 @@ class _TimerScreenState extends State<TimerScreen> {
     setState(() {
       _isRunning = false;
       _showConfetti = true;
+      _showRunningSummary = true; // Mostrar resumen en lugar del timer
     });
 
     // Permitir que la pantalla se bloquee al completar
@@ -719,344 +722,6 @@ class _TimerScreenState extends State<TimerScreen> {
         });
       }
     });
-
-    // Calcular estadísticas
-    double averageTime = _roundTimes.isNotEmpty 
-        ? _roundTimes.reduce((a, b) => a + b) / _roundTimes.length
-        : 0;
-    int bestTime = _roundTimes.isNotEmpty ? _roundTimes.reduce((a, b) => a < b ? a : b) : 0;
-    int worstTime = _roundTimes.isNotEmpty ? _roundTimes.reduce((a, b) => a > b ? a : b) : 0;
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        final languageProvider = Provider.of<LanguageProvider>(
-          context,
-          listen: false,
-        );
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.purple.withOpacity(0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.directions_run,
-                  color: Colors.purple,
-                  size: 32,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                languageProvider.getText('workout_completed'),
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.purple,
-                  fontSize: 18,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Estadísticas generales
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.purple.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      '${_targetDistance}m x ${_roundTimes.length} ${languageProvider.getText('rounds').toLowerCase()}',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Column(
-                          children: [
-                            Text(
-                              '${averageTime.toStringAsFixed(1)}s',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.purple,
-                              ),
-                            ),
-                            Text(
-                              languageProvider.getText('average').toUpperCase(),
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            Text(
-                              '${bestTime}s',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.green,
-                              ),
-                            ),
-                            Text(
-                              languageProvider.getText('best').toUpperCase(),
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            Text(
-                              '${worstTime}s',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.orange,
-                              ),
-                            ),
-                            Text(
-                              languageProvider.getText('worst').toUpperCase(),
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              // Mini gráfica de rendimiento por rondas
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: Colors.grey.withOpacity(0.2),
-                    width: 1,
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '📊 ${languageProvider.getText('performance_chart')}',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.purple,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    // Gráfica de barras simple
-                    Container(
-                      height: 80,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          for (int i = 0; i < _roundTimes.length; i++)
-                            Expanded(
-                              child: Container(
-                                margin: const EdgeInsets.symmetric(horizontal: 1),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    // Tiempo en la parte superior
-                                    Text(
-                                      '${_roundTimes[i]}s',
-                                      style: TextStyle(
-                                        fontSize: 9,
-                                        fontWeight: FontWeight.w600,
-                                        color: _roundTimes[i] == bestTime
-                                            ? Colors.green
-                                            : _roundTimes[i] == worstTime
-                                                ? Colors.orange
-                                                : Colors.grey[700],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    // Barra de tiempo
-                                    Container(
-                                      width: double.infinity,
-                                      height: ((_roundTimes[i] - bestTime) / (worstTime - bestTime) * 50 + 10).clamp(10.0, 60.0),
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          begin: Alignment.bottomCenter,
-                                          end: Alignment.topCenter,
-                                          colors: _roundTimes[i] == bestTime
-                                              ? [Colors.green.withOpacity(0.3), Colors.green]
-                                              : _roundTimes[i] == worstTime
-                                                  ? [Colors.orange.withOpacity(0.3), Colors.orange]
-                                                  : [Colors.purple.withOpacity(0.3), Colors.purple.withOpacity(0.7)],
-                                        ),
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    // Número de ronda
-                                    Text(
-                                      '${i + 1}',
-                                      style: const TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w500,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              // Detalle por rondas
-              Container(
-                constraints: const BoxConstraints(maxHeight: 150),
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      for (int i = 0; i < _roundTimes.length; i++)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 2),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                '${languageProvider.getText('round')} ${i + 1}:',
-                                style: const TextStyle(fontSize: 14),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: _roundTimes[i] == bestTime
-                                      ? Colors.green.withOpacity(0.2)
-                                      : _roundTimes[i] == worstTime
-                                          ? Colors.orange.withOpacity(0.2)
-                                          : Colors.grey.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  '${_roundTimes[i]}s',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: _roundTimes[i] == bestTime
-                                        ? Colors.green
-                                        : _roundTimes[i] == worstTime
-                                            ? Colors.orange
-                                            : Colors.black87,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                languageProvider.getText('excellent_work'),
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[600],
-                  fontStyle: FontStyle.italic,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-          actionsAlignment: MainAxisAlignment.spaceEvenly,
-          actions: [
-            // Botón Compartir
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () {
-                  _shareRunningWorkout();
-                },
-                icon: const Icon(Icons.share),
-                label: Text(languageProvider.getText('share')),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.green,
-                  side: const BorderSide(color: Colors.green),
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            // Botón Repetir
-            SizedBox(
-              width: double.infinity,
-              child: TextButton.icon(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  _resetTimer();
-                },
-                icon: const Icon(Icons.refresh),
-                label: Text(languageProvider.getText('repeat')),
-                style: TextButton.styleFrom(foregroundColor: Colors.blue),
-              ),
-            ),
-            const SizedBox(height: 8),
-            // Botón Menú Principal
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop(); // Volver a la pantalla principal
-                },
-                icon: const Icon(Icons.home),
-                label: Text(languageProvider.getText('main_menu')),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.purple,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   void _showCompletionDialog() {
@@ -1753,7 +1418,7 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
-                                  'R${i + 1}: ${_roundTimes[i]}s',
+                                  '${i + 1}: ${_roundTimes[i]}s',
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w600,
@@ -1808,25 +1473,27 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
 
                 const SizedBox(height: 40),
 
-                // Timer principal animado
+                // Timer principal animado O Resumen final de RUNNING
                 Center(
-                      child: AnimatedCircularTimer(
-                        currentSeconds: _currentSeconds,
-                        totalSeconds: _isPreparation
-                            ? _preparationTime
-                            : _totalSeconds,
-                        timerColor: _isPreparation
-                            ? Colors.orange
-                            : _getTimerColor(),
-                        isRunning: _isRunning,
-                        onTap: () {
-                          if (_isRunning) {
-                            _pauseTimer();
-                          } else {
-                            _startTimer();
-                          }
-                        },
-                      ),
+                  child: _showRunningSummary && widget.timerType == 'RUNNING'
+                      ? _buildRunningSummaryWidget(languageProvider)
+                      : AnimatedCircularTimer(
+                          currentSeconds: _currentSeconds,
+                          totalSeconds: _isPreparation
+                              ? _preparationTime
+                              : _totalSeconds,
+                          timerColor: _isPreparation
+                              ? Colors.orange
+                              : _getTimerColor(),
+                          isRunning: _isRunning,
+                          onTap: () {
+                            if (_isRunning) {
+                              _pauseTimer();
+                            } else {
+                              _startTimer();
+                            }
+                          },
+                        ),
                     )
                     .animate()
                     .fadeIn(duration: 800.ms, delay: 400.ms)
@@ -1840,7 +1507,8 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                 // Botón específico para RUNNING - Versión limpia sin info de ronda
                 if (widget.timerType == 'RUNNING' &&
                     _isRunningDistance &&
-                    _isRunning)
+                    _isRunning &&
+                    !_showRunningSummary)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 20),
                     child: SizedBox(
@@ -1899,6 +1567,7 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                   ),
 
                 // Controles del timer con animaciones
+                if (!_showRunningSummary)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -2006,6 +1675,340 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
           ),
         ),
       ],
+    );
+  }
+
+  // Widget para mostrar el resumen final de Running
+  Widget _buildRunningSummaryWidget(LanguageProvider languageProvider) {
+    // Calcular estadísticas
+    double averageTime = _roundTimes.isNotEmpty 
+        ? _roundTimes.reduce((a, b) => a + b) / _roundTimes.length
+        : 0;
+    int bestTime = _roundTimes.isNotEmpty ? _roundTimes.reduce((a, b) => a < b ? a : b) : 0;
+    int worstTime = _roundTimes.isNotEmpty ? _roundTimes.reduce((a, b) => a > b ? a : b) : 0;
+
+    return Container(
+      width: double.infinity,
+      constraints: const BoxConstraints(maxHeight: 600),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.purple.withOpacity(0.1),
+            Colors.purple.withOpacity(0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.purple.withOpacity(0.3),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.purple.withOpacity(0.2),
+            blurRadius: 20,
+            spreadRadius: 5,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Título con icono
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.purple.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Column(
+              children: [
+                const Icon(
+                  Icons.directions_run,
+                  color: Colors.purple,
+                  size: 40,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  languageProvider.getText('workout_completed'),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.purple,
+                    fontSize: 24,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '${_targetDistance}m × ${_roundTimes.length} ${languageProvider.getText('rounds').toLowerCase()}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.purple,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+          
+          const SizedBox(height: 20),
+
+          // Estadísticas principales
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildStatCard(
+                '${averageTime.toStringAsFixed(1)}s',
+                languageProvider.getText('average').toUpperCase(),
+                Colors.purple,
+              ),
+              _buildStatCard(
+                '${bestTime}s',
+                languageProvider.getText('best').toUpperCase(),
+                Colors.green,
+              ),
+              _buildStatCard(
+                '${worstTime}s',
+                languageProvider.getText('worst').toUpperCase(),
+                Colors.orange,
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 20),
+
+          // Gráfica de rendimiento
+          Container(
+            height: 180,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(15),
+              border: Border.all(
+                color: Colors.grey.withOpacity(0.3),
+                width: 1,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '📊 ${languageProvider.getText('performance_chart')}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.purple,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: BarChart(
+                    BarChartData(
+                      alignment: BarChartAlignment.spaceAround,
+                      maxY: (worstTime + (worstTime * 0.1)).toDouble(),
+                      minY: 0,
+                      groupsSpace: 8,
+                      barTouchData: BarTouchData(
+                        enabled: true,
+                        touchTooltipData: BarTouchTooltipData(
+                          getTooltipColor: (group) => Colors.purple.withOpacity(0.8),
+                          tooltipRoundedRadius: 8,
+                          getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                            return BarTooltipItem(
+                              'Vuelta ${group.x + 1}\n${rod.toY.round()}s',
+                              const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      titlesData: FlTitlesData(
+                        show: true,
+                        rightTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                        topTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            getTitlesWidget: (value, meta) {
+                              return Text(
+                                '${value.toInt() + 1}',
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 10,
+                                ),
+                              );
+                            },
+                            reservedSize: 20,
+                          ),
+                        ),
+                        leftTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 30,
+                            interval: (worstTime / 3).ceilToDouble().clamp(1.0, double.infinity),
+                            getTitlesWidget: (value, meta) {
+                              return Text(
+                                '${value.round()}s',
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontWeight: FontWeight.w400,
+                                  fontSize: 9,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                      borderData: FlBorderData(
+                        show: true,
+                        border: Border(
+                          left: BorderSide(color: Colors.grey.withOpacity(0.3), width: 1),
+                          bottom: BorderSide(color: Colors.grey.withOpacity(0.3), width: 1),
+                        ),
+                      ),
+                      gridData: FlGridData(
+                        show: true,
+                        horizontalInterval: (worstTime / 3).ceilToDouble().clamp(1.0, double.infinity),
+                        getDrawingHorizontalLine: (value) {
+                          return FlLine(
+                            color: Colors.grey.withOpacity(0.2),
+                            strokeWidth: 1,
+                          );
+                        },
+                        drawVerticalLine: false,
+                      ),
+                      barGroups: [
+                        for (int i = 0; i < _roundTimes.length; i++)
+                          BarChartGroupData(
+                            x: i,
+                            barRods: [
+                              BarChartRodData(
+                                toY: _roundTimes[i].toDouble(),
+                                color: _roundTimes[i] == bestTime
+                                    ? Colors.green
+                                    : _roundTimes[i] == worstTime
+                                        ? Colors.orange
+                                        : Colors.purple,
+                                width: (_roundTimes.length <= 5) ? 20 : 15,
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(4),
+                                  topRight: Radius.circular(4),
+                                ),
+                                gradient: LinearGradient(
+                                  begin: Alignment.bottomCenter,
+                                  end: Alignment.topCenter,
+                                  colors: [
+                                    (_roundTimes[i] == bestTime
+                                        ? Colors.green
+                                        : _roundTimes[i] == worstTime
+                                            ? Colors.orange
+                                            : Colors.purple).withOpacity(0.3),
+                                    _roundTimes[i] == bestTime
+                                        ? Colors.green
+                                        : _roundTimes[i] == worstTime
+                                            ? Colors.orange
+                                            : Colors.purple,
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // Botones de acción
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _shareRunningWorkout,
+                  icon: const Icon(Icons.share),
+                  label: Text(languageProvider.getText('share')),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.green,
+                    side: const BorderSide(color: Colors.green),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      _showRunningSummary = false;
+                    });
+                    _resetTimer();
+                  },
+                  icon: const Icon(Icons.refresh),
+                  label: Text(languageProvider.getText('repeat')),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.purple,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Widget helper para las estadísticas
+  Widget _buildStatCard(String value, String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: color.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
