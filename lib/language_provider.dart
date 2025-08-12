@@ -241,6 +241,12 @@ class LanguageProvider extends ChangeNotifier {
         'close': 'Cerrar',
         'love_it': '¡Me Encanta!',
         'thanks_message': '¡Gracias por usar Workout Timer PRO!',
+        
+        // Running Summary
+        'average': 'Promedio',
+        'best': 'Mejor',
+        'worst': 'Peor',
+        'round_details': 'Detalle por rondas',
       },
       'en': {
         // TTS y Audio
@@ -422,6 +428,12 @@ class LanguageProvider extends ChangeNotifier {
         'close': 'Close',
         'love_it': 'Love it!',
         'thanks_message': 'Thanks for using Workout Timer PRO!',
+        
+        // Running Summary
+        'average': 'Average',
+        'best': 'Best',
+        'worst': 'Worst',
+        'round_details': 'Round details',
       },
     };
 

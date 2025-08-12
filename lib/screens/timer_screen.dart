@@ -41,6 +41,10 @@ class _TimerScreenState extends State<TimerScreen> {
   bool _isRunningDistance = true; // true = corriendo, false = descansando
   int _targetDistance = 400; // metros objetivo
   int _restSeconds = 120; // segundos de descanso
+  
+  // Variables para tracking de rendimiento
+  List<int> _roundTimes = []; // Tiempos de cada ronda en segundos
+  int _roundStartTime = 0; // Tiempo cuando empezó la ronda actual
 
   // Variables para preparación
   int _preparationTime = 10;
@@ -413,6 +417,8 @@ class _TimerScreenState extends State<TimerScreen> {
         _isRunningDistance = true;
         _isPreparation = false;
         _currentSeconds = 0; // Cronómetro empieza en 0
+        _roundTimes = []; // Resetear tiempos de rondas
+        _roundStartTime = 0; // Resetear tiempo de inicio de ronda
         break;
     }
     setState(() {}); // Actualizar la UI con los nuevos valores
@@ -436,6 +442,11 @@ class _TimerScreenState extends State<TimerScreen> {
       _hasPlayedTenSecondsBeep = false; // Resetear anuncio de 10 segundos
       _hasPlayedFiveSecondsBeep = false; // Resetear anuncio de 5 segundos
       _hasPlayedTimeUpBeep = false; // Resetear anuncio de "Tiempo"
+      
+      // Para RUNNING, registrar el tiempo de inicio de la ronda
+      if (widget.timerType == 'RUNNING' && _isRunningDistance) {
+        _roundStartTime = _currentSeconds;
+      }
     });
 
     // Mantener la pantalla activa durante el entrenamiento
@@ -595,6 +606,10 @@ class _TimerScreenState extends State<TimerScreen> {
   // Método específico para cuando el usuario completa la distancia en RUNNING
   void _completeRunningDistance() {
     setState(() {
+      // Registrar el tiempo de esta ronda
+      int roundTime = _currentSeconds - _roundStartTime;
+      _roundTimes.add(roundTime);
+      
       _isRunningDistance = false; // Cambiar a modo descanso
       _currentSeconds = _restSeconds; // Configurar tiempo de descanso
     });
@@ -604,7 +619,7 @@ class _TimerScreenState extends State<TimerScreen> {
     _playCompletionSound();
 
     print(
-      "🏃‍♂️ Distancia completada! Iniciando descanso de $_restSeconds segundos",
+      "🏃‍♂️ Distancia completada en ${_roundTimes.last} segundos! Iniciando descanso de $_restSeconds segundos",
     );
   }
 
@@ -662,6 +677,7 @@ class _TimerScreenState extends State<TimerScreen> {
               _isRunningDistance = true; // Volver a modo corriendo
               _currentRound++; // Siguiente ronda
               _currentSeconds = 0; // Resetear cronómetro
+              _roundStartTime = 0; // Resetear tiempo de inicio para nueva ronda
             });
             _playMinuteCompleteSound(); // Sonido especial al terminar descanso
             print("✅ Descanso terminado! Ronda $_currentRound - ¡A correr!");
@@ -670,7 +686,7 @@ class _TimerScreenState extends State<TimerScreen> {
             _timer?.cancel();
             _playCompletionSound();
             _speakWorkoutComplete(); // Anuncio de voz cuando se completa
-            _showCompletionDialog();
+            _showRunningCompletionDialog(); // Mostrar resumen especial para RUNNING
           }
         }
         break;
@@ -681,6 +697,277 @@ class _TimerScreenState extends State<TimerScreen> {
         _showCompletionDialog();
         break;
     }
+  }
+
+  void _showRunningCompletionDialog() {
+    setState(() {
+      _isRunning = false;
+      _showConfetti = true;
+    });
+
+    // Permitir que la pantalla se bloquee al completar
+    WakelockPlus.disable();
+
+    // Guardar en el historial
+    _saveWorkoutHistory();
+
+    // Ocultar confetti después de un tiempo más corto
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) {
+        setState(() {
+          _showConfetti = false;
+        });
+      }
+    });
+
+    // Calcular estadísticas
+    double averageTime = _roundTimes.isNotEmpty 
+        ? _roundTimes.reduce((a, b) => a + b) / _roundTimes.length
+        : 0;
+    int bestTime = _roundTimes.isNotEmpty ? _roundTimes.reduce((a, b) => a < b ? a : b) : 0;
+    int worstTime = _roundTimes.isNotEmpty ? _roundTimes.reduce((a, b) => a > b ? a : b) : 0;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        final languageProvider = Provider.of<LanguageProvider>(
+          context,
+          listen: false,
+        );
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.purple.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.directions_run,
+                  color: Colors.purple,
+                  size: 32,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                languageProvider.getText('workout_completed'),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.purple,
+                  fontSize: 18,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Estadísticas generales
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.purple.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      '${_targetDistance}m x ${_roundTimes.length} ${languageProvider.getText('rounds').toLowerCase()}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Column(
+                          children: [
+                            Text(
+                              '${averageTime.toStringAsFixed(1)}s',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.purple,
+                              ),
+                            ),
+                            Text(
+                              languageProvider.getText('average').toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                        Column(
+                          children: [
+                            Text(
+                              '${bestTime}s',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green,
+                              ),
+                            ),
+                            Text(
+                              languageProvider.getText('best').toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                        Column(
+                          children: [
+                            Text(
+                              '${worstTime}s',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.orange,
+                              ),
+                            ),
+                            Text(
+                              languageProvider.getText('worst').toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Detalle por rondas
+              Container(
+                constraints: const BoxConstraints(maxHeight: 150),
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      for (int i = 0; i < _roundTimes.length; i++)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 2),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                '${languageProvider.getText('round')} ${i + 1}:',
+                                style: const TextStyle(fontSize: 14),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: _roundTimes[i] == bestTime
+                                      ? Colors.green.withOpacity(0.2)
+                                      : _roundTimes[i] == worstTime
+                                          ? Colors.orange.withOpacity(0.2)
+                                          : Colors.grey.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  '${_roundTimes[i]}s',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: _roundTimes[i] == bestTime
+                                        ? Colors.green
+                                        : _roundTimes[i] == worstTime
+                                            ? Colors.orange
+                                            : Colors.black87,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                languageProvider.getText('excellent_work'),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                  fontStyle: FontStyle.italic,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+          actionsAlignment: MainAxisAlignment.spaceEvenly,
+          actions: [
+            // Botón Compartir
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  _shareRunningWorkout();
+                },
+                icon: const Icon(Icons.share),
+                label: Text(languageProvider.getText('share')),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.green,
+                  side: const BorderSide(color: Colors.green),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            // Botón Repetir
+            SizedBox(
+              width: double.infinity,
+              child: TextButton.icon(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  _resetTimer();
+                },
+                icon: const Icon(Icons.refresh),
+                label: Text(languageProvider.getText('repeat')),
+                style: TextButton.styleFrom(foregroundColor: Colors.blue),
+              ),
+            ),
+            const SizedBox(height: 8),
+            // Botón Menú Principal
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop(); // Volver a la pantalla principal
+                },
+                icon: const Icon(Icons.home),
+                label: Text(languageProvider.getText('main_menu')),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.purple,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _showCompletionDialog() {
@@ -946,6 +1233,59 @@ class _TimerScreenState extends State<TimerScreen> {
         }
       default:
         return languageProvider.getText('workout_timer');
+    }
+  }
+
+  void _shareRunningWorkout() async {
+    final languageProvider = Provider.of<LanguageProvider>(
+      context,
+      listen: false,
+    );
+    
+    // Calcular estadísticas
+    double averageTime = _roundTimes.isNotEmpty 
+        ? _roundTimes.reduce((a, b) => a + b) / _roundTimes.length
+        : 0;
+    int bestTime = _roundTimes.isNotEmpty ? _roundTimes.reduce((a, b) => a < b ? a : b) : 0;
+    
+    DateTime now = DateTime.now();
+    String date = '${now.day}/${now.month}/${now.year}';
+    
+    String roundDetails = '';
+    for (int i = 0; i < _roundTimes.length; i++) {
+      roundDetails += '${languageProvider.getText('round')} ${i + 1}: ${_roundTimes[i]}s\n';
+    }
+    
+    String shareText = '''
+🏃‍♂️ ${languageProvider.getText('just_completed')}
+
+🎯 ${_targetDistance}m x ${_roundTimes.length} ${languageProvider.getText('rounds').toLowerCase()}
+📊 ${languageProvider.getText('average')}: ${averageTime.toStringAsFixed(1)}s
+🥇 ${languageProvider.getText('best')}: ${bestTime}s
+📅 $date
+
+${languageProvider.getText('round_details')}:
+$roundDetails
+${languageProvider.getText('keep_training')}
+
+#Running #CrossFit #Fitness #Training #Motivation
+''';
+
+    try {
+      await Share.share(
+        shareText,
+        subject: languageProvider.getText('workout_completed_subject'),
+      );
+    } catch (e) {
+      // Si falla, mostrar un mensaje de error
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(languageProvider.getText('share_error')),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
     }
   }
 
