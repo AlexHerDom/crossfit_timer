@@ -21,6 +21,9 @@ class _ConfigScreenState extends State<ConfigScreen> {
   final _workSecondsController = TextEditingController();
   final _restSecondsController = TextEditingController();
   final _preparationController = TextEditingController();
+  // Controladores específicos para RUNNING
+  final _runningDistanceController = TextEditingController();
+  final _runningRestController = TextEditingController();
 
   @override
   void initState() {
@@ -36,6 +39,8 @@ class _ConfigScreenState extends State<ConfigScreen> {
     _workSecondsController.dispose();
     _restSecondsController.dispose();
     _preparationController.dispose();
+    _runningDistanceController.dispose();
+    _runningRestController.dispose();
     super.dispose();
   }
 
@@ -72,6 +77,14 @@ class _ConfigScreenState extends State<ConfigScreen> {
         _minutesController.text = (prefs.getInt('countdown_minutes') ?? 3)
             .toString();
         _secondsController.text = (prefs.getInt('countdown_seconds') ?? 0)
+            .toString();
+        break;
+      case 'RUNNING':
+        _runningDistanceController.text = (prefs.getInt('running_distance') ?? 400)
+            .toString();
+        _runningRestController.text = (prefs.getInt('running_rest') ?? 60)
+            .toString();
+        _roundsController.text = (prefs.getInt('running_rounds') ?? 5)
             .toString();
         break;
     }
@@ -115,6 +128,20 @@ class _ConfigScreenState extends State<ConfigScreen> {
         await prefs.setInt(
           'countdown_seconds',
           int.parse(_secondsController.text),
+        );
+        break;
+      case 'RUNNING':
+        await prefs.setInt(
+          'running_distance',
+          int.parse(_runningDistanceController.text),
+        );
+        await prefs.setInt(
+          'running_rest',
+          int.parse(_runningRestController.text),
+        );
+        await prefs.setInt(
+          'running_rounds',
+          int.parse(_roundsController.text),
         );
         break;
     }
@@ -302,6 +329,29 @@ class _ConfigScreenState extends State<ConfigScreen> {
                       ),
                     ),
                   ],
+                ),
+              ],
+
+              if (widget.timerType == 'RUNNING') ...[
+                _buildTimeField(
+                  languageProvider.getText('target_distance'),
+                  _runningDistanceController,
+                  languageProvider,
+                  suffix: languageProvider.getText('meters_suffix'),
+                ),
+                const SizedBox(height: 20),
+                _buildTimeField(
+                  languageProvider.getText('rest_between_rounds'),
+                  _runningRestController,
+                  languageProvider,
+                  suffix: languageProvider.getText('seconds_suffix'),
+                ),
+                const SizedBox(height: 20),
+                _buildTimeField(
+                  languageProvider.getText('number_of_rounds'),
+                  _roundsController,
+                  languageProvider,
+                  suffix: languageProvider.getText('rounds_suffix'),
                 ),
               ],
 

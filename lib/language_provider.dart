@@ -181,6 +181,9 @@ class LanguageProvider extends ChangeNotifier {
         'sec_suffix': 'seg',
         'seconds_suffix': 'segundos',
         'rounds_suffix': 'rondas',
+        'meters_suffix': 'metros',
+        'target_distance': 'Distancia objetivo',
+        'rest_between_rounds': 'Descanso entre rondas',
         'number_of_rounds': 'Número de rondas',
         'work_time': 'Tiempo de trabajo',
         'rest_time': 'Tiempo de descanso',
@@ -355,6 +358,9 @@ class LanguageProvider extends ChangeNotifier {
         'sec_suffix': 'sec',
         'seconds_suffix': 'seconds',
         'rounds_suffix': 'rounds',
+        'meters_suffix': 'meters',
+        'target_distance': 'Target distance',
+        'rest_between_rounds': 'Rest between rounds',
 
         // Settings Screen
         'save_settings': 'Save settings',
