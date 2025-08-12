@@ -7,9 +7,9 @@
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
-import 'package:workout_timer/main.dart';
-import 'package:workout_timer/theme_provider.dart';
-import 'package:workout_timer/language_provider.dart';
+import 'package:crossfit_timer_pro/main.dart';
+import 'package:crossfit_timer_pro/theme_provider.dart';
+import 'package:crossfit_timer_pro/language_provider.dart';
 
 void main() {
   testWidgets('CrossFit Timer app starts correctly', (
