@@ -926,11 +926,11 @@ class _TimerScreenState extends State<TimerScreen> {
       case 'COUNTDOWN':
         return languageProvider.getText('countdown_description');
       case 'RUNNING':
-        // Mostrar información dinámica según el estado
+        // Mostrar información dinámica según el estado con progreso de rondas en el título
         if (_isRunningDistance) {
-          return languageProvider.getText('run_distance').replaceAll('{distance}', _targetDistance.toString());
+          return '${languageProvider.getText('run_distance').replaceAll('{distance}', _targetDistance.toString())} - ${languageProvider.currentLanguage == 'es' ? 'Ronda' : 'Round'} $_currentRound/$_totalRounds';
         } else {
-          return '${languageProvider.getText('running_rest')} - ${languageProvider.getText('next_interval').replaceAll('{distance}', _targetDistance.toString())}';
+          return '${languageProvider.getText('running_rest')} - ${languageProvider.currentLanguage == 'es' ? 'Ronda' : 'Round'} $_currentRound/$_totalRounds';
         }
       default:
         return languageProvider.getText('workout_timer');
@@ -1358,45 +1358,60 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
 
                 const SizedBox(height: 60),
 
-                // Botón específico para RUNNING - "TERMINÉ LA DISTANCIA"
+                // Botón específico para RUNNING - Versión limpia sin info de ronda
                 if (widget.timerType == 'RUNNING' && _isRunningDistance && _isRunning)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 20),
                     child: SizedBox(
                       width: double.infinity,
-                      height: 60,
                       child: ElevatedButton(
                         onPressed: _completeRunningDistance,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange,
+                          backgroundColor: const Color(0xFF2E7D32), // Verde profesional
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          elevation: 8,
-                          shadowColor: Colors.orange.withOpacity(0.5),
+                          elevation: 3,
+                          shadowColor: Colors.black26,
+                          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.check_circle, size: 28),
+                            const Icon(
+                              Icons.flag_outlined,
+                              size: 24,
+                              color: Colors.white,
+                            ),
                             const SizedBox(width: 12),
-                            Text(
-                              languageProvider.getText('completed_distance'),
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1.0,
-                              ),
+                            Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'COMPLETÉ ${_targetDistance}M',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                                Text(
+                                  languageProvider.currentLanguage == 'es' 
+                                    ? 'Iniciar descanso' 
+                                    : 'Start rest period',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w400,
+                                    color: Colors.white.withOpacity(0.85),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
                       ),
-                    )
-                    .animate()
-                    .fadeIn(duration: 800.ms)
-                    .scale(begin: const Offset(0.8, 0.8), end: const Offset(1.0, 1.0))
-                    .shimmer(duration: 2000.ms),
+                    ),
                   ),
 
                 // Controles del timer con animaciones
