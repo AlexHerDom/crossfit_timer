@@ -852,6 +852,95 @@ class _TimerScreenState extends State<TimerScreen> {
                 ),
               ),
               const SizedBox(height: 16),
+              // Mini gráfica de rendimiento por rondas
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.grey.withOpacity(0.2),
+                    width: 1,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '📊 ${languageProvider.getText('performance_chart')}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.purple,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // Gráfica de barras simple
+                    Container(
+                      height: 80,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          for (int i = 0; i < _roundTimes.length; i++)
+                            Expanded(
+                              child: Container(
+                                margin: const EdgeInsets.symmetric(horizontal: 1),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    // Tiempo en la parte superior
+                                    Text(
+                                      '${_roundTimes[i]}s',
+                                      style: TextStyle(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w600,
+                                        color: _roundTimes[i] == bestTime
+                                            ? Colors.green
+                                            : _roundTimes[i] == worstTime
+                                                ? Colors.orange
+                                                : Colors.grey[700],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    // Barra de tiempo
+                                    Container(
+                                      width: double.infinity,
+                                      height: ((_roundTimes[i] - bestTime) / (worstTime - bestTime) * 50 + 10).clamp(10.0, 60.0),
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          begin: Alignment.bottomCenter,
+                                          end: Alignment.topCenter,
+                                          colors: _roundTimes[i] == bestTime
+                                              ? [Colors.green.withOpacity(0.3), Colors.green]
+                                              : _roundTimes[i] == worstTime
+                                                  ? [Colors.orange.withOpacity(0.3), Colors.orange]
+                                                  : [Colors.purple.withOpacity(0.3), Colors.purple.withOpacity(0.7)],
+                                        ),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    // Número de ronda
+                                    Text(
+                                      '${i + 1}',
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
               // Detalle por rondas
               Container(
                 constraints: const BoxConstraints(maxHeight: 150),
@@ -1626,6 +1715,62 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                         duration: 2000.ms,
                         color: Colors.white.withOpacity(0.6),
                       ),
+
+                // Mostrar progreso de rondas completadas durante el descanso de RUNNING
+                if (widget.timerType == 'RUNNING' && !_isRunningDistance && _roundTimes.isNotEmpty && !_isPreparation)
+                  Container(
+                    margin: const EdgeInsets.only(top: 15),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: _getTimerColor().withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(15),
+                      border: Border.all(
+                        color: _getTimerColor().withOpacity(0.2),
+                        width: 1,
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '${languageProvider.getText('rounds_completed').toUpperCase()}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: _getTimerColor().withOpacity(0.8),
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            for (int i = 0; i < _roundTimes.length; i++) ...[
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: _getTimerColor().withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  'R${i + 1}: ${_roundTimes[i]}s',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: _getTimerColor(),
+                                  ),
+                                ),
+                              ),
+                              if (i < _roundTimes.length - 1) const SizedBox(width: 6),
+                            ],
+                          ],
+                        ),
+                      ],
+                    ),
+                  )
+                  .animate()
+                  .fadeIn(duration: 400.ms)
+                  .slideY(begin: 0.3, end: 0),
 
                 if (widget.timerType != 'COUNTDOWN' &&
                     widget.timerType != 'AMRAP' &&

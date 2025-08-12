@@ -247,6 +247,8 @@ class LanguageProvider extends ChangeNotifier {
         'best': 'Mejor',
         'worst': 'Peor',
         'round_details': 'Detalle por rondas',
+        'performance_chart': 'Gráfica de Rendimiento',
+        'completed_rounds_status': 'Rondas Completadas',
       },
       'en': {
         // TTS y Audio
@@ -434,6 +436,8 @@ class LanguageProvider extends ChangeNotifier {
         'best': 'Best',
         'worst': 'Worst',
         'round_details': 'Round details',
+        'performance_chart': 'Performance Chart',
+        'completed_rounds_status': 'Completed Rounds',
       },
     };
 
