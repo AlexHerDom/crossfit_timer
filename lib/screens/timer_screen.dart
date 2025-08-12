@@ -37,6 +37,11 @@ class _TimerScreenState extends State<TimerScreen> {
   bool _isWorkPeriod = true; // Para Tabata (trabajo vs descanso)
   bool _isFullScreen = false; // Para modo pantalla completa
 
+  // Variables específicas para RUNNING
+  bool _isRunningDistance = true; // true = corriendo, false = descansando
+  int _targetDistance = 400; // metros objetivo
+  int _restSeconds = 120; // segundos de descanso
+
   // Variables para preparación
   int _preparationTime = 10;
   bool _isPreparation = true; // Período de preparación de 10 segundos
@@ -400,6 +405,15 @@ class _TimerScreenState extends State<TimerScreen> {
         _isPreparation = false;
         _currentSeconds = _totalSeconds;
         break;
+      case 'RUNNING':
+        // Configuración para Running
+        _targetDistance = prefs.getInt('running_distance') ?? 400;
+        _restSeconds = prefs.getInt('running_rest_seconds') ?? 120;
+        _totalRounds = prefs.getInt('running_rounds') ?? 8;
+        _isRunningDistance = true;
+        _isPreparation = false;
+        _currentSeconds = 0; // Cronómetro empieza en 0
+        break;
     }
     setState(() {}); // Actualizar la UI con los nuevos valores
   }
@@ -434,7 +448,10 @@ class _TimerScreenState extends State<TimerScreen> {
 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
-        if (_currentSeconds > 0) {
+        // Lógica especial para RUNNING: cronómetro ascendente cuando está corriendo
+        if (widget.timerType == 'RUNNING' && _isRunningDistance) {
+          _currentSeconds++; // Cronómetro ascendente
+        } else if (_currentSeconds > 0) {
           _currentSeconds--;
 
           // Durante la preparación
