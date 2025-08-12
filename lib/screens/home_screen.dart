@@ -262,6 +262,22 @@ class _HomeScreenState extends State<HomeScreen> {
                 .slideX(begin: 0.3, end: 0)
                 .shimmer(delay: 1600.ms, duration: 1500.ms),
 
+            const SizedBox(height: 20),
+
+            // Botón Running con animación
+            _buildTimerButton(
+                  context,
+                  title: languageProvider.getText('running_title'),
+                  subtitle: languageProvider.getText('running_subtitle'),
+                  icon: Icons.directions_run,
+                  color: Colors.purple,
+                  onTap: () => _navigateToTimer(context, 'RUNNING'),
+                )
+                .animate()
+                .fadeIn(duration: 600.ms, delay: 600.ms)
+                .slideX(begin: -0.3, end: 0)
+                .shimmer(delay: 1800.ms, duration: 1500.ms),
+
             const SizedBox(height: 40),
           ],
         ),

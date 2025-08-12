@@ -148,6 +148,8 @@ class LanguageProvider extends ChangeNotifier {
         'tabata_subtitle': '20s trabajo / 10s descanso',
         'countdown_title': 'COUNTDOWN',
         'countdown_subtitle': 'Temporizador simple',
+        'running_title': 'RUNNING',
+        'running_subtitle': 'Intervalos de carrera',
 
         // AppBar
         'history': 'Historial',
@@ -309,6 +311,8 @@ class LanguageProvider extends ChangeNotifier {
         'tabata_subtitle': '20s work / 10s rest',
         'countdown_title': 'COUNTDOWN',
         'countdown_subtitle': 'Simple timer',
+        'running_title': 'RUNNING',
+        'running_subtitle': 'Running intervals',
 
         // AppBar
         'history': 'History',
