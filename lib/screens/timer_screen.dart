@@ -592,6 +592,20 @@ class _TimerScreenState extends State<TimerScreen> {
     WakelockPlus.disable();
   }
 
+  // Método específico para cuando el usuario completa la distancia en RUNNING
+  void _completeRunningDistance() {
+    setState(() {
+      _isRunningDistance = false; // Cambiar a modo descanso
+      _currentSeconds = _restSeconds; // Configurar tiempo de descanso
+    });
+    
+    // Sonido y vibración para marcar el cambio a descanso
+    HapticFeedback.mediumImpact();
+    _playCompletionSound();
+    
+    print("🏃‍♂️ Distancia completada! Iniciando descanso de $_restSeconds segundos");
+  }
+
   void _handleTimerComplete() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
@@ -630,6 +644,27 @@ class _TimerScreenState extends State<TimerScreen> {
             _currentSeconds = prefs.getInt('tabata_work') ?? 20;
             _playMinuteCompleteSound(); // Sonido especial al terminar descanso
           } else {
+            _timer?.cancel();
+            _playCompletionSound();
+            _speakWorkoutComplete(); // Anuncio de voz cuando se completa
+            _showCompletionDialog();
+          }
+        }
+        break;
+      case 'RUNNING':
+        // Solo se llama cuando termina el tiempo de descanso
+        if (!_isRunningDistance) {
+          // Volver al modo "corriendo" para la siguiente ronda
+          if (_currentRound < _totalRounds) {
+            setState(() {
+              _isRunningDistance = true; // Volver a modo corriendo
+              _currentRound++; // Siguiente ronda
+              _currentSeconds = 0; // Resetear cronómetro
+            });
+            _playMinuteCompleteSound(); // Sonido especial al terminar descanso
+            print("✅ Descanso terminado! Ronda $_currentRound - ¡A correr!");
+          } else {
+            // Completar el entrenamiento
             _timer?.cancel();
             _playCompletionSound();
             _speakWorkoutComplete(); // Anuncio de voz cuando se completa
@@ -890,6 +925,13 @@ class _TimerScreenState extends State<TimerScreen> {
         return languageProvider.getText('tabata_description');
       case 'COUNTDOWN':
         return languageProvider.getText('countdown_description');
+      case 'RUNNING':
+        // Mostrar información dinámica según el estado
+        if (_isRunningDistance) {
+          return languageProvider.getText('run_distance').replaceAll('{distance}', _targetDistance.toString());
+        } else {
+          return '${languageProvider.getText('running_rest')} - ${languageProvider.getText('next_interval').replaceAll('{distance}', _targetDistance.toString())}';
+        }
       default:
         return languageProvider.getText('workout_timer');
     }
@@ -1191,8 +1233,69 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                         color: Colors.white.withOpacity(0.6),
                       ),
 
+                // Información específica para RUNNING
+                if (widget.timerType == 'RUNNING' && !_isPreparation)
+                  Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 25,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: _isRunningDistance
+                                ? [Colors.purple.withOpacity(0.9), Colors.deepPurple.withOpacity(0.9)]
+                                : [Colors.green.withOpacity(0.9), Colors.teal.withOpacity(0.9)],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                          ),
+                          borderRadius: BorderRadius.circular(25),
+                          boxShadow: [
+                            BoxShadow(
+                              color: (_isRunningDistance ? Colors.purple : Colors.green).withOpacity(0.3),
+                              blurRadius: 10,
+                              spreadRadius: 2,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              _isRunningDistance ? Icons.directions_run : Icons.self_improvement,
+                              color: Colors.white,
+                              size: 22,
+                            ),
+                            const SizedBox(width: 8),
+                            // Texto principal con información específica de Running
+                            Text(
+                              _isRunningDistance
+                                  ? languageProvider.getText('run_distance').replaceAll('{distance}', _targetDistance.toString())
+                                  : languageProvider.getText('running_rest'),
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                letterSpacing: 1.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                      .animate()
+                      .fadeIn(duration: 600.ms)
+                      .scale(
+                        begin: const Offset(0.7, 0.7),
+                        end: const Offset(1.0, 1.0),
+                      )
+                      .shimmer(
+                        duration: 2000.ms,
+                        color: Colors.white.withOpacity(0.6),
+                      ),
+
                 if (widget.timerType != 'COUNTDOWN' &&
                     widget.timerType != 'AMRAP' &&
+                    widget.timerType != 'RUNNING' &&
                     !_isPreparation)
                   Container(
                         margin: const EdgeInsets.only(top: 10),
@@ -1254,6 +1357,47 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                     ),
 
                 const SizedBox(height: 60),
+
+                // Botón específico para RUNNING - "TERMINÉ LA DISTANCIA"
+                if (widget.timerType == 'RUNNING' && _isRunningDistance && _isRunning)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 20),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 60,
+                      child: ElevatedButton(
+                        onPressed: _completeRunningDistance,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          elevation: 8,
+                          shadowColor: Colors.orange.withOpacity(0.5),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.check_circle, size: 28),
+                            const SizedBox(width: 12),
+                            Text(
+                              languageProvider.getText('completed_distance'),
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.0,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                    .animate()
+                    .fadeIn(duration: 800.ms)
+                    .scale(begin: const Offset(0.8, 0.8), end: const Offset(1.0, 1.0))
+                    .shimmer(duration: 2000.ms),
+                  ),
 
                 // Controles del timer con animaciones
                 Row(

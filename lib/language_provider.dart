@@ -151,6 +151,13 @@ class LanguageProvider extends ChangeNotifier {
         'running_title': 'RUNNING',
         'running_subtitle': 'Intervalos de carrera',
 
+        // Running specific texts
+        'run_distance': 'CORRE {distance}M',
+        'running_rest': 'DESCANSO',
+        'completed_distance': 'TERMINÉ LA DISTANCIA',
+        'skip_rest': 'SALTAR DESCANSO',
+        'next_interval': 'Próximo: {distance}m',
+
         // AppBar
         'history': 'Historial',
         'settings': 'Configuraciones',
@@ -313,6 +320,13 @@ class LanguageProvider extends ChangeNotifier {
         'countdown_subtitle': 'Simple timer',
         'running_title': 'RUNNING',
         'running_subtitle': 'Running intervals',
+
+        // Running specific texts
+        'run_distance': 'RUN {distance}M',
+        'running_rest': 'REST',
+        'completed_distance': 'COMPLETED DISTANCE',
+        'skip_rest': 'SKIP REST',
+        'next_interval': 'Next: {distance}m',
 
         // AppBar
         'history': 'History',
