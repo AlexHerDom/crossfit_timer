@@ -42,8 +42,9 @@ class _TimerScreenState extends State<TimerScreen> {
   bool _isRunningDistance = true; // true = corriendo, false = descansando
   int _targetDistance = 400; // metros objetivo
   int _restSeconds = 120; // segundos de descanso
-  bool _showRunningSummary = false; // Para mostrar resumen final en lugar del timer
-  
+  bool _showRunningSummary =
+      false; // Para mostrar resumen final en lugar del timer
+
   // Variables para tracking de rendimiento
   List<int> _roundTimes = []; // Tiempos de cada ronda en segundos
   int _roundStartTime = 0; // Tiempo cuando empezó la ronda actual
@@ -444,7 +445,7 @@ class _TimerScreenState extends State<TimerScreen> {
       _hasPlayedTenSecondsBeep = false; // Resetear anuncio de 10 segundos
       _hasPlayedFiveSecondsBeep = false; // Resetear anuncio de 5 segundos
       _hasPlayedTimeUpBeep = false; // Resetear anuncio de "Tiempo"
-      
+
       // Para RUNNING, registrar el tiempo de inicio de la ronda
       if (widget.timerType == 'RUNNING' && _isRunningDistance) {
         _roundStartTime = _currentSeconds;
@@ -611,18 +612,30 @@ class _TimerScreenState extends State<TimerScreen> {
       // Registrar el tiempo de esta ronda
       int roundTime = _currentSeconds - _roundStartTime;
       _roundTimes.add(roundTime);
-      
-      _isRunningDistance = false; // Cambiar a modo descanso
-      _currentSeconds = _restSeconds; // Configurar tiempo de descanso
     });
 
-    // Sonido y vibración para marcar el cambio a descanso
+    // Sonido y vibración para marcar la finalización
     HapticFeedback.mediumImpact();
-    _playCompletionSound();
 
-    print(
-      "🏃‍♂️ Distancia completada en ${_roundTimes.last} segundos! Iniciando descanso de $_restSeconds segundos",
-    );
+    // Verificar si es la última ronda
+    if (_currentRound >= _totalRounds) {
+      // Es la última ronda, terminar directamente
+      _timer?.cancel();
+      _playCompletionSound();
+      _speakWorkoutComplete(); // Anuncio de voz cuando se completa
+      _showRunningCompletionDialog(); // Mostrar resumen especial para RUNNING
+      print("🏁 ¡Entrenamiento completado! Mostrando resumen final");
+    } else {
+      // No es la última ronda, pasar al descanso
+      setState(() {
+        _isRunningDistance = false; // Cambiar a modo descanso
+        _currentSeconds = _restSeconds; // Configurar tiempo de descanso
+      });
+      _playCompletionSound();
+      print(
+        "🏃‍♂️ Distancia completada en ${_roundTimes.last} segundos! Iniciando descanso de $_restSeconds segundos",
+      );
+    }
   }
 
   void _handleTimerComplete() async {
@@ -892,11 +905,22 @@ class _TimerScreenState extends State<TimerScreen> {
       case 'COUNTDOWN':
         totalDuration = _totalSeconds;
         break;
+      case 'RUNNING':
+        // Para RUNNING, sumar todos los tiempos de las rondas más el tiempo de descanso
+        totalDuration = _roundTimes.fold(0, (sum, time) => sum + time);
+        // Agregar tiempo de descanso (total de descansos es rounds - 1)
+        if (_roundTimes.length > 1) {
+          totalDuration += (_roundTimes.length - 1) * _restSeconds;
+        }
+        break;
     }
 
     // Crear registro del entrenamiento
+    int actualRounds = widget.timerType == 'RUNNING'
+        ? _roundTimes.length
+        : _totalRounds;
     String workoutRecord =
-        '${widget.timerType}|$totalDuration|$_totalRounds|${DateTime.now().toIso8601String()}';
+        '${widget.timerType}|$totalDuration|$actualRounds|${DateTime.now().toIso8601String()}';
     history.add(workoutRecord);
 
     // Mantener solo los últimos 50 entrenamientos
@@ -932,14 +956,14 @@ class _TimerScreenState extends State<TimerScreen> {
 
   Color _getTimerColor() {
     final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-    
+
     // Paleta unificada: usar solo el color primario y grises
     switch (widget.timerType) {
       case 'TABATA':
         // Para Tabata, usar tonos del color primario en lugar de rojo/azul
-        return _isWorkPeriod 
-          ? themeProvider.primaryColor 
-          : themeProvider.primaryColor.withOpacity(0.6);
+        return _isWorkPeriod
+            ? themeProvider.primaryColor
+            : themeProvider.primaryColor.withOpacity(0.6);
       case 'RUNNING':
         // Para Running, usar el color primario
         return themeProvider.primaryColor;
@@ -979,11 +1003,13 @@ class _TimerScreenState extends State<TimerScreen> {
       case 'COUNTDOWN':
         return languageProvider.getText('countdown_description');
       case 'RUNNING':
-        // Mostrar información dinámica según el estado con progreso de rondas en el título
+        // Mostrar información sin progreso de rondas en el título
         if (_isRunningDistance) {
-          return '${languageProvider.getText('run_distance').replaceAll('{distance}', _targetDistance.toString())} - ${languageProvider.currentLanguage == 'es' ? 'Ronda' : 'Round'} $_currentRound/$_totalRounds';
+          return languageProvider
+              .getText('run_distance')
+              .replaceAll('{distance}', _targetDistance.toString());
         } else {
-          return '${languageProvider.getText('running_rest')} - ${languageProvider.currentLanguage == 'es' ? 'Ronda' : 'Round'} $_currentRound/$_totalRounds';
+          return languageProvider.getText('running_rest');
         }
       default:
         return languageProvider.getText('workout_timer');
@@ -995,22 +1021,26 @@ class _TimerScreenState extends State<TimerScreen> {
       context,
       listen: false,
     );
-    
+
     // Calcular estadísticas
-    double averageTime = _roundTimes.isNotEmpty 
+    double averageTime = _roundTimes.isNotEmpty
         ? _roundTimes.reduce((a, b) => a + b) / _roundTimes.length
         : 0;
-    int bestTime = _roundTimes.isNotEmpty ? _roundTimes.reduce((a, b) => a < b ? a : b) : 0;
-    
+    int bestTime = _roundTimes.isNotEmpty
+        ? _roundTimes.reduce((a, b) => a < b ? a : b)
+        : 0;
+
     DateTime now = DateTime.now();
     String date = '${now.day}/${now.month}/${now.year}';
-    
+
     String roundDetails = '';
     for (int i = 0; i < _roundTimes.length; i++) {
-      roundDetails += '${languageProvider.getText('round')} ${i + 1}: ${_roundTimes[i]}s\n';
+      roundDetails +=
+          '${languageProvider.getText('round')} ${i + 1}: ${_roundTimes[i]}s\n';
     }
-    
-    String shareText = '''
+
+    String shareText =
+        '''
 🏃‍♂️ ${languageProvider.getText('just_completed')}
 
 🎯 ${_targetDistance}m x ${_roundTimes.length} ${languageProvider.getText('rounds').toLowerCase()}
@@ -1229,7 +1259,10 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                         decoration: BoxDecoration(
                           color: Colors.grey.withOpacity(0.1), // Color neutro
                           borderRadius: BorderRadius.circular(25),
-                          border: Border.all(color: Colors.grey.withOpacity(0.3), width: 1),
+                          border: Border.all(
+                            color: Colors.grey.withOpacity(0.3),
+                            width: 1,
+                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -1332,11 +1365,13 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                           vertical: 12,
                         ),
                         decoration: BoxDecoration(
-                          color: _getTimerColor().withOpacity(0.1), // Color del tema suave
+                          color: _getTimerColor().withOpacity(
+                            0.1,
+                          ), // Color del tema suave
                           borderRadius: BorderRadius.circular(25),
                           border: Border.all(
-                            color: _getTimerColor().withOpacity(0.3), 
-                            width: 1
+                            color: _getTimerColor().withOpacity(0.3),
+                            width: 1,
                           ),
                         ),
                         child: Row(
@@ -1382,7 +1417,10 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                       ),
 
                 // Mostrar progreso de rondas completadas durante el descanso de RUNNING
-                if (widget.timerType == 'RUNNING' && !_isRunningDistance && _roundTimes.isNotEmpty && !_isPreparation)
+                if (widget.timerType == 'RUNNING' &&
+                    !_isRunningDistance &&
+                    _roundTimes.isNotEmpty &&
+                    !_isPreparation)
                   Container(
                     margin: const EdgeInsets.only(top: 15),
                     padding: const EdgeInsets.all(16),
@@ -1412,7 +1450,10 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                           children: [
                             for (int i = 0; i < _roundTimes.length; i++) ...[
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
                                   color: _getTimerColor().withOpacity(0.15),
                                   borderRadius: BorderRadius.circular(8),
@@ -1426,16 +1467,14 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                                   ),
                                 ),
                               ),
-                              if (i < _roundTimes.length - 1) const SizedBox(width: 6),
+                              if (i < _roundTimes.length - 1)
+                                const SizedBox(width: 6),
                             ],
                           ],
                         ),
                       ],
                     ),
-                  )
-                  .animate()
-                  .fadeIn(duration: 400.ms)
-                  .slideY(begin: 0.3, end: 0),
+                  ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.3, end: 0),
 
                 if (widget.timerType != 'COUNTDOWN' &&
                     widget.timerType != 'AMRAP' &&
@@ -1475,25 +1514,26 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
 
                 // Timer principal animado O Resumen final de RUNNING
                 Center(
-                  child: _showRunningSummary && widget.timerType == 'RUNNING'
-                      ? _buildRunningSummaryWidget(languageProvider)
-                      : AnimatedCircularTimer(
-                          currentSeconds: _currentSeconds,
-                          totalSeconds: _isPreparation
-                              ? _preparationTime
-                              : _totalSeconds,
-                          timerColor: _isPreparation
-                              ? Colors.orange
-                              : _getTimerColor(),
-                          isRunning: _isRunning,
-                          onTap: () {
-                            if (_isRunning) {
-                              _pauseTimer();
-                            } else {
-                              _startTimer();
-                            }
-                          },
-                        ),
+                      child:
+                          _showRunningSummary && widget.timerType == 'RUNNING'
+                          ? _buildRunningSummaryWidget(languageProvider)
+                          : AnimatedCircularTimer(
+                              currentSeconds: _currentSeconds,
+                              totalSeconds: _isPreparation
+                                  ? _preparationTime
+                                  : _totalSeconds,
+                              timerColor: _isPreparation
+                                  ? Colors.orange
+                                  : _getTimerColor(),
+                              isRunning: _isRunning,
+                              onTap: () {
+                                if (_isRunning) {
+                                  _pauseTimer();
+                                } else {
+                                  _startTimer();
+                                }
+                              },
+                            ),
                     )
                     .animate()
                     .fadeIn(duration: 800.ms, delay: 400.ms)
@@ -1516,7 +1556,8 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                       child: ElevatedButton(
                         onPressed: _completeRunningDistance,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: _getTimerColor(), // Usar color del tema
+                          backgroundColor:
+                              _getTimerColor(), // Usar color del tema
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -1531,12 +1572,6 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(
-                              Icons.flag_outlined,
-                              size: 24,
-                              color: Colors.white,
-                            ),
-                            const SizedBox(width: 12),
                             Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -1568,51 +1603,51 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
 
                 // Controles del timer con animaciones
                 if (!_showRunningSummary)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    // Botón Reset
-                    _buildControlButton(
-                          onPressed: _resetTimer,
-                          backgroundColor: Colors.grey[600]!,
-                          icon: Icons.refresh,
-                          label: languageProvider.getText('reset'),
-                        )
-                        .animate()
-                        .fadeIn(duration: 600.ms, delay: 600.ms)
-                        .slideY(begin: 0.3, end: 0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      // Botón Reset
+                      _buildControlButton(
+                            onPressed: _resetTimer,
+                            backgroundColor: Colors.grey[600]!,
+                            icon: Icons.refresh,
+                            label: languageProvider.getText('reset'),
+                          )
+                          .animate()
+                          .fadeIn(duration: 600.ms, delay: 600.ms)
+                          .slideY(begin: 0.3, end: 0),
 
-                    // Botón Play/Pause
-                    _buildControlButton(
-                          onPressed: _isRunning ? _pauseTimer : _startTimer,
-                          backgroundColor: _isRunning
-                              ? Colors.orange
-                              : Colors.green,
-                          icon: _isRunning ? Icons.pause : Icons.play_arrow,
-                          label: _isRunning
-                              ? languageProvider.getText('pause')
-                              : languageProvider.getText('start'),
-                          isPrimary: true,
-                        )
-                        .animate()
-                        .fadeIn(duration: 600.ms, delay: 700.ms)
-                        .scale(
-                          begin: const Offset(0.8, 0.8),
-                          end: const Offset(1.0, 1.0),
-                        ),
+                      // Botón Play/Pause
+                      _buildControlButton(
+                            onPressed: _isRunning ? _pauseTimer : _startTimer,
+                            backgroundColor: _isRunning
+                                ? Colors.orange
+                                : Colors.green,
+                            icon: _isRunning ? Icons.pause : Icons.play_arrow,
+                            label: _isRunning
+                                ? languageProvider.getText('pause')
+                                : languageProvider.getText('start'),
+                            isPrimary: true,
+                          )
+                          .animate()
+                          .fadeIn(duration: 600.ms, delay: 700.ms)
+                          .scale(
+                            begin: const Offset(0.8, 0.8),
+                            end: const Offset(1.0, 1.0),
+                          ),
 
-                    // Botón Stop
-                    _buildControlButton(
-                          onPressed: () => Navigator.pop(context),
-                          backgroundColor: Colors.red[600]!,
-                          icon: Icons.stop,
-                          label: languageProvider.getText('exit'),
-                        )
-                        .animate()
-                        .fadeIn(duration: 600.ms, delay: 800.ms)
-                        .slideY(begin: 0.3, end: 0),
-                  ],
-                ),
+                      // Botón Stop
+                      _buildControlButton(
+                            onPressed: () => Navigator.pop(context),
+                            backgroundColor: Colors.red[600]!,
+                            icon: Icons.stop,
+                            label: languageProvider.getText('exit'),
+                          )
+                          .animate()
+                          .fadeIn(duration: 600.ms, delay: 800.ms)
+                          .slideY(begin: 0.3, end: 0),
+                    ],
+                  ),
               ],
             ),
           ),
@@ -1681,11 +1716,15 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
   // Widget para mostrar el resumen final de Running
   Widget _buildRunningSummaryWidget(LanguageProvider languageProvider) {
     // Calcular estadísticas
-    double averageTime = _roundTimes.isNotEmpty 
+    double averageTime = _roundTimes.isNotEmpty
         ? _roundTimes.reduce((a, b) => a + b) / _roundTimes.length
         : 0;
-    int bestTime = _roundTimes.isNotEmpty ? _roundTimes.reduce((a, b) => a < b ? a : b) : 0;
-    int worstTime = _roundTimes.isNotEmpty ? _roundTimes.reduce((a, b) => a > b ? a : b) : 0;
+    int bestTime = _roundTimes.isNotEmpty
+        ? _roundTimes.reduce((a, b) => a < b ? a : b)
+        : 0;
+    int worstTime = _roundTimes.isNotEmpty
+        ? _roundTimes.reduce((a, b) => a > b ? a : b)
+        : 0;
 
     return Container(
       width: double.infinity,
@@ -1701,10 +1740,7 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
           ],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Colors.purple.withOpacity(0.3),
-          width: 2,
-        ),
+        border: Border.all(color: Colors.purple.withOpacity(0.3), width: 2),
         boxShadow: [
           BoxShadow(
             color: Colors.purple.withOpacity(0.2),
@@ -1754,25 +1790,26 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
               ],
             ),
           ),
-          
+
           const SizedBox(height: 20),
 
           // Estadísticas principales
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _buildStatCard(
-                '${averageTime.toStringAsFixed(1)}s',
+                _formatTimeDouble(averageTime),
                 languageProvider.getText('average').toUpperCase(),
                 Colors.purple,
               ),
+              const SizedBox(width: 12),
               _buildStatCard(
-                '${bestTime}s',
+                _formatTime(bestTime),
                 languageProvider.getText('best').toUpperCase(),
                 Colors.green,
               ),
+              const SizedBox(width: 12),
               _buildStatCard(
-                '${worstTime}s',
+                _formatTime(worstTime),
                 languageProvider.getText('worst').toUpperCase(),
                 Colors.orange,
               ),
@@ -1788,10 +1825,7 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(15),
-              border: Border.all(
-                color: Colors.grey.withOpacity(0.3),
-                width: 1,
-              ),
+              border: Border.all(color: Colors.grey.withOpacity(0.3), width: 1),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1815,7 +1849,8 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                       barTouchData: BarTouchData(
                         enabled: true,
                         touchTooltipData: BarTouchTooltipData(
-                          getTooltipColor: (group) => Colors.purple.withOpacity(0.8),
+                          getTooltipColor: (group) =>
+                              Colors.purple.withOpacity(0.8),
                           tooltipRoundedRadius: 8,
                           getTooltipItem: (group, groupIndex, rod, rodIndex) {
                             return BarTooltipItem(
@@ -1857,7 +1892,10 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                           sideTitles: SideTitles(
                             showTitles: true,
                             reservedSize: 30,
-                            interval: (worstTime / 3).ceilToDouble().clamp(1.0, double.infinity),
+                            interval: (worstTime / 3).ceilToDouble().clamp(
+                              1.0,
+                              double.infinity,
+                            ),
                             getTitlesWidget: (value, meta) {
                               return Text(
                                 '${value.round()}s',
@@ -1874,13 +1912,21 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                       borderData: FlBorderData(
                         show: true,
                         border: Border(
-                          left: BorderSide(color: Colors.grey.withOpacity(0.3), width: 1),
-                          bottom: BorderSide(color: Colors.grey.withOpacity(0.3), width: 1),
+                          left: BorderSide(
+                            color: Colors.grey.withOpacity(0.3),
+                            width: 1,
+                          ),
+                          bottom: BorderSide(
+                            color: Colors.grey.withOpacity(0.3),
+                            width: 1,
+                          ),
                         ),
                       ),
                       gridData: FlGridData(
                         show: true,
-                        horizontalInterval: (worstTime / 3).ceilToDouble().clamp(1.0, double.infinity),
+                        horizontalInterval: (worstTime / 3)
+                            .ceilToDouble()
+                            .clamp(1.0, double.infinity),
                         getDrawingHorizontalLine: (value) {
                           return FlLine(
                             color: Colors.grey.withOpacity(0.2),
@@ -1899,8 +1945,8 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                                 color: _roundTimes[i] == bestTime
                                     ? Colors.green
                                     : _roundTimes[i] == worstTime
-                                        ? Colors.orange
-                                        : Colors.purple,
+                                    ? Colors.orange
+                                    : Colors.purple,
                                 width: (_roundTimes.length <= 5) ? 20 : 15,
                                 borderRadius: const BorderRadius.only(
                                   topLeft: Radius.circular(4),
@@ -1911,15 +1957,16 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                                   end: Alignment.topCenter,
                                   colors: [
                                     (_roundTimes[i] == bestTime
-                                        ? Colors.green
-                                        : _roundTimes[i] == worstTime
+                                            ? Colors.green
+                                            : _roundTimes[i] == worstTime
                                             ? Colors.orange
-                                            : Colors.purple).withOpacity(0.3),
+                                            : Colors.purple)
+                                        .withOpacity(0.3),
                                     _roundTimes[i] == bestTime
                                         ? Colors.green
                                         : _roundTimes[i] == worstTime
-                                            ? Colors.orange
-                                            : Colors.purple,
+                                        ? Colors.orange
+                                        : Colors.purple,
                                   ],
                                 ),
                               ),
@@ -1977,38 +2024,42 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
 
   // Widget helper para las estadísticas
   Widget _buildStatCard(String value, String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: color.withOpacity(0.3),
-          width: 1,
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withOpacity(0.3), width: 1),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              color: Colors.grey[600],
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
     );
+  }
+
+  String _formatTimeDouble(double seconds) {
+    int intSeconds = seconds.round();
+    return _formatTime(intSeconds);
   }
 }

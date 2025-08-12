@@ -86,8 +86,27 @@ class _HistoryScreenState extends State<HistoryScreen> {
         return Colors.red;
       case 'COUNTDOWN':
         return Colors.green;
+      case 'RUNNING':
+        return Colors.purple;
       default:
         return Colors.grey;
+    }
+  }
+
+  IconData _getTypeIcon(String type) {
+    switch (type) {
+      case 'AMRAP':
+        return Icons.repeat;
+      case 'EMOM':
+        return Icons.timer;
+      case 'TABATA':
+        return Icons.flash_on;
+      case 'COUNTDOWN':
+        return Icons.hourglass_bottom;
+      case 'RUNNING':
+        return Icons.directions_run;
+      default:
+        return Icons.fitness_center;
     }
   }
 
@@ -144,12 +163,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         child: ListTile(
                           leading: CircleAvatar(
                             backgroundColor: _getTypeColor(workout.type),
-                            child: Text(
-                              workout.type[0],
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
+                            child: Icon(
+                              _getTypeIcon(workout.type),
+                              color: Colors.white,
                             ),
                           ),
                           title: Text(

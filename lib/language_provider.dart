@@ -241,7 +241,7 @@ class LanguageProvider extends ChangeNotifier {
         'close': 'Cerrar',
         'love_it': '¡Me Encanta!',
         'thanks_message': '¡Gracias por usar Workout Timer PRO!',
-        
+
         // Running Summary
         'average': 'Promedio',
         'best': 'Mejor',
@@ -430,7 +430,7 @@ class LanguageProvider extends ChangeNotifier {
         'close': 'Close',
         'love_it': 'Love it!',
         'thanks_message': 'Thanks for using Workout Timer PRO!',
-        
+
         // Running Summary
         'average': 'Average',
         'best': 'Best',
