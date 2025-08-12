@@ -218,8 +218,8 @@ class _ConfigScreenState extends State<ConfigScreen> {
               ),
               const SizedBox(height: 30),
 
-              // Tiempo de preparación (común para todos excepto COUNTDOWN)
-              if (widget.timerType != 'COUNTDOWN') ...[
+              // Tiempo de preparación (común para todos excepto COUNTDOWN y RUNNING)
+              if (widget.timerType != 'COUNTDOWN' && widget.timerType != 'RUNNING') ...[
                 _buildTimeField(
                   languageProvider.getText('preparation_time'),
                   _preparationController,

@@ -408,8 +408,8 @@ class _TimerScreenState extends State<TimerScreen> {
       case 'RUNNING':
         // Configuración para Running
         _targetDistance = prefs.getInt('running_distance') ?? 400;
-        _restSeconds = prefs.getInt('running_rest_seconds') ?? 120;
-        _totalRounds = prefs.getInt('running_rounds') ?? 8;
+        _restSeconds = prefs.getInt('running_rest') ?? 60;
+        _totalRounds = prefs.getInt('running_rounds') ?? 5;
         _isRunningDistance = true;
         _isPreparation = false;
         _currentSeconds = 0; // Cronómetro empieza en 0
