@@ -108,15 +108,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          languageProvider.getText('workout_timer'),
-                          style: TextStyle(
-                            fontSize: 36,
-                            fontWeight: FontWeight.bold,
-                            color: themeProvider.primaryColor,
-                            letterSpacing: 2.0,
+                        Flexible(
+                          child: Text(
+                            languageProvider.getText('workout_timer'),
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: themeProvider.primaryColor,
+                              letterSpacing: 1.5,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          textAlign: TextAlign.center,
                         ),
                         const SizedBox(width: 8),
                         Container(
