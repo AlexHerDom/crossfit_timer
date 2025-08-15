@@ -114,9 +114,10 @@ class _TimerScreenState extends State<TimerScreen> {
   Future<void> _playCompletionSound() async {
     try {
       await _audioPlayer.setPlayerMode(PlayerMode.lowLatency);
+      await _audioPlayer.setVolume(1.0); // 🔊 VOLUMEN MÁXIMO PARA EXTERIORES
       await _audioPlayer.play(AssetSource('sounds/completion.wav'));
       HapticFeedback.heavyImpact();
-      print("✅ Completion sound reproducido exitosamente");
+      print("✅ Completion sound reproducido exitosamente - VOLUMEN MÁXIMO");
     } catch (e) {
       print("❌ Error reproduciendo completion: $e");
       // Fallback múltiple
@@ -134,9 +135,10 @@ class _TimerScreenState extends State<TimerScreen> {
     try {
       // Sonido especial diferente para la mitad del tiempo (más grave y largo)
       await _audioPlayer.setPlayerMode(PlayerMode.lowLatency);
+      await _audioPlayer.setVolume(1.0); // 🔊 VOLUMEN MÁXIMO PARA EXTERIORES
       await _audioPlayer.play(AssetSource('sounds/halfway_special.wav'));
       HapticFeedback.lightImpact();
-      print("✅ Halfway beep especial reproducido exitosamente");
+      print("✅ Halfway beep especial reproducido exitosamente - VOLUMEN MÁXIMO");
     } catch (e) {
       print("❌ Error reproduciendo halfway: $e");
       // Fallback
@@ -154,15 +156,17 @@ class _TimerScreenState extends State<TimerScreen> {
     try {
       // Primer beep
       await _audioPlayer.setPlayerMode(PlayerMode.lowLatency);
+      await _audioPlayer.setVolume(1.0); // 🔊 VOLUMEN MÁXIMO PARA EXTERIORES
       await _audioPlayer.play(AssetSource('sounds/halfway.wav'));
       HapticFeedback.lightImpact();
 
       // Esperar un momento y segundo beep
       await Future.delayed(const Duration(milliseconds: 300));
+      await _audioPlayer.setVolume(1.0); // 🔊 VOLUMEN MÁXIMO PARA EL SEGUNDO BEEP
       await _audioPlayer.play(AssetSource('sounds/halfway.wav'));
       HapticFeedback.lightImpact();
 
-      print("✅ Halfway double beep reproducido exitosamente");
+      print("✅ Halfway double beep reproducido exitosamente - VOLUMEN MÁXIMO");
     } catch (e) {
       print("❌ Error reproduciendo halfway double beep: $e");
       // Fallback
@@ -183,9 +187,10 @@ class _TimerScreenState extends State<TimerScreen> {
     try {
       // Sonido especial para la preparación (más suave y motivador)
       await _audioPlayer.setPlayerMode(PlayerMode.lowLatency);
+      await _audioPlayer.setVolume(1.0); // 🔊 VOLUMEN MÁXIMO PARA EXTERIORES
       await _audioPlayer.play(AssetSource('sounds/beep.wav'));
       HapticFeedback.selectionClick(); // Vibración más suave para preparación
-      print("✅ Preparation beep reproducido exitosamente");
+      print("✅ Preparation beep reproducido exitosamente - VOLUMEN MÁXIMO");
     } catch (e) {
       print("❌ Error reproduciendo preparation beep: $e");
       // Fallback
@@ -203,11 +208,12 @@ class _TimerScreenState extends State<TimerScreen> {
     try {
       // Sonido especial para indicar que terminó un minuto
       await _audioPlayer.setPlayerMode(PlayerMode.lowLatency);
+      await _audioPlayer.setVolume(1.0); // 🔊 VOLUMEN MÁXIMO PARA EXTERIORES
       await _audioPlayer.play(
         AssetSource('sounds/halfway.wav'),
       ); // Usamos el sonido de halfway que es más distintivo
       HapticFeedback.mediumImpact(); // Vibración más fuerte para marcar el final del minuto
-      print("✅ Minute complete sound reproducido exitosamente");
+      print("✅ Minute complete sound reproducido exitosamente - VOLUMEN MÁXIMO");
     } catch (e) {
       print("❌ Error reproduciendo minute complete sound: $e");
       // Fallback con doble beep para distinguir
