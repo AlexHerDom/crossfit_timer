@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // Para SystemSound y HapticFeedback
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import '../theme_provider.dart';
@@ -128,15 +129,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Icons.volume_up,
           ),
           if (_soundEnabled)
-            _buildSliderTile(
-              languageProvider.getText('beep_volume_title'),
-              languageProvider.getText('beep_volume_desc'),
-              _beepVolume,
-              0.0,
-              1.0,
-              (value) => setState(() => _beepVolume = value),
-              Icons.volume_up,
-            ),
+            _buildVolumeControlTile(languageProvider),
 
           const SizedBox(height: 20),
 
@@ -317,6 +310,180 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       ),
     );
+  }
+
+  // 🔊 WIDGET ESPECIAL PARA CONTROL DE VOLUMEN CON PRUEBA
+  Widget _buildVolumeControlTile(LanguageProvider languageProvider) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ENCABEZADO CON ICONO Y TÍTULO
+            Row(
+              children: [
+                Icon(Icons.volume_up, color: _getThemeColor()),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        languageProvider.getText('beep_volume_title'),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Text(
+                        'Ajusta el volumen para entrenamientos al aire libre',
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: _getThemeColor().withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: _getThemeColor().withOpacity(0.3)),
+                  ),
+                  child: Text(
+                    '${(_beepVolume * 100).round()}%',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: _getThemeColor(),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // SLIDER DE VOLUMEN
+            Row(
+              children: [
+                Icon(Icons.volume_down, color: Colors.grey[600], size: 20),
+                Expanded(
+                  child: Slider(
+                    value: _beepVolume,
+                    min: 0.0,
+                    max: 1.0,
+                    divisions: 10,
+                    onChanged: (value) {
+                      setState(() => _beepVolume = value);
+                      _saveSettings(); // Guardar automáticamente
+                    },
+                    activeColor: _getThemeColor(),
+                    inactiveColor: _getThemeColor().withOpacity(0.3),
+                  ),
+                ),
+                Icon(Icons.volume_up, color: _getThemeColor(), size: 20),
+              ],
+            ),
+            
+            const SizedBox(height: 12),
+            
+            // BOTÓN DE PRUEBA
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _testVolume,
+                icon: const Icon(Icons.play_circle_filled),
+                label: const Text(
+                  'Probar Volumen',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _getThemeColor(),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ),
+            
+            const SizedBox(height: 12),
+            
+            // CONSEJOS
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orange.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.orange.withOpacity(0.3)),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.lightbulb_outline, color: Colors.orange, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Para entrenamientos al aire libre:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.orange,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '• Usa 80-100% para ambientes ruidosos\n'
+                          '• Conecta altavoces Bluetooth para más potencia\n'
+                          '• El teléfono vibra como respaldo',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.orange[700],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _testVolume() async {
+    // Método simple para probar el volumen usando SystemSound
+    try {
+      if (_beepVolume > 0.7) {
+        // Volumen alto - usar alert
+        SystemSound.play(SystemSoundType.alert);
+      } else if (_beepVolume > 0.3) {
+        // Volumen medio
+        SystemSound.play(SystemSoundType.click);
+      } else {
+        // Volumen bajo - vibración solamente
+        HapticFeedback.lightImpact();
+      }
+      
+      // Mostrar feedback visual
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Volumen probado: ${(_beepVolume * 100).round()}%'),
+          duration: const Duration(seconds: 1),
+          backgroundColor: _getThemeColor(),
+        ),
+      );
+    } catch (e) {
+      print('Error probando volumen: $e');
+    }
   }
 
   Widget _buildThemeSelector(ThemeProvider themeProvider) {
