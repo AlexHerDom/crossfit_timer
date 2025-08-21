@@ -978,6 +978,114 @@ class _TimerScreenState extends State<TimerScreen> {
     }
   }
 
+  // 🎨 Nuevo método para colores de fondo según el estado del timer
+  Color _getBackgroundColor() {
+    // Si el timer ha terminado (tiempo 0 y no está corriendo)
+    if (_currentSeconds == 0 && !_isRunning) {
+      return Colors.red.withOpacity(0.2); // Rojo para finalizado
+    }
+
+    // Si no está corriendo o está pausado, usar fondo neutro
+    if (!_isRunning || _isPaused) {
+      return Theme.of(context).scaffoldBackgroundColor;
+    }
+
+    // Durante la preparación - verde más visible
+    if (_isPreparation) {
+      return Colors.green.withOpacity(0.25); // Verde más intenso para preparación
+    }
+
+    // Estados específicos por tipo de timer con colores más visibles
+    switch (widget.timerType) {
+      case 'TABATA':
+        return _isWorkPeriod 
+            ? Colors.blue.withOpacity(0.25)     // Azul más intenso para trabajo
+            : Colors.orange.withOpacity(0.25);  // Naranja más intenso para descanso
+      
+      case 'RUNNING':
+        return _isRunningDistance 
+            ? Colors.blue.withOpacity(0.25)     // Azul más intenso para correr
+            : Colors.orange.withOpacity(0.25);  // Naranja más intenso para descanso
+      
+      case 'AMRAP':
+      case 'EMOM':
+      case 'COUNTDOWN':
+      default:
+        return Colors.blue.withOpacity(0.25);  // Azul más intenso para tiempo de trabajo
+    }
+  }
+
+  // 🏷️ Widget para mostrar el estado actual con color distintivo
+  Widget _buildStatusIndicator() {
+    final languageProvider = Provider.of<LanguageProvider>(context);
+    
+    String statusText;
+    Color statusColor;
+    IconData statusIcon;
+
+    // Determinar texto, color e icono según el estado
+    if (_currentSeconds == 0 && !_isRunning) {
+      statusText = languageProvider.getText('completed');
+      statusColor = Colors.red;
+      statusIcon = Icons.check_circle;
+    } else if (!_isRunning || _isPaused) {
+      statusText = _isPaused ? languageProvider.getText('paused') : languageProvider.getText('ready');
+      statusColor = Colors.grey;
+      statusIcon = _isPaused ? Icons.pause_circle : Icons.play_circle;
+    } else if (_isPreparation) {
+      statusText = languageProvider.getText('prepare');
+      statusColor = Colors.green;
+      statusIcon = Icons.fitness_center;
+    } else {
+      switch (widget.timerType) {
+        case 'TABATA':
+          statusText = _isWorkPeriod ? 'TRABAJO' : 'DESCANSO';
+          statusColor = _isWorkPeriod ? Colors.blue : Colors.orange;
+          statusIcon = _isWorkPeriod ? Icons.flash_on : Icons.pause;
+          break;
+        case 'RUNNING':
+          statusText = _isRunningDistance ? 'CORRIENDO' : 'DESCANSO';
+          statusColor = _isRunningDistance ? Colors.blue : Colors.orange;
+          statusIcon = _isRunningDistance ? Icons.directions_run : Icons.pause;
+          break;
+        default:
+          statusText = 'ENTRENANDO';
+          statusColor = Colors.blue;
+          statusIcon = Icons.fitness_center;
+      }
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: statusColor.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: statusColor.withOpacity(0.6), width: 2),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(statusIcon, color: statusColor, size: 24),
+          const SizedBox(width: 8),
+          Text(
+            statusText.toUpperCase(),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: statusColor,
+              letterSpacing: 1.2,
+            ),
+          ),
+        ],
+      ),
+    )
+        .animate()
+        .fadeIn(duration: 300.ms)
+        .scale(begin: const Offset(0.8, 0.8));
+  }
+
   IconData _getTimerIcon() {
     switch (widget.timerType) {
       case 'AMRAP':
@@ -1175,6 +1283,7 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
     final languageProvider = Provider.of<LanguageProvider>(context);
 
     return Scaffold(
+      backgroundColor: _getBackgroundColor(),
       appBar: AppBar(
         title: Row(
           mainAxisSize: MainAxisSize.min,
@@ -1254,6 +1363,9 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                // 🚨 Indicador de estado prominente
+                _buildStatusIndicator(),
+                
                 // Indicador de preparación - responsivo y flexible
                 if (_isPreparation)
                   Container(
