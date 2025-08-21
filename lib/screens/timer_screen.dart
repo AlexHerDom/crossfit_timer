@@ -866,7 +866,7 @@ class _TimerScreenState extends State<TimerScreen> {
                 },
                 icon: const Icon(Icons.refresh),
                 label: Text(languageProvider.getText('repeat')),
-                style: TextButton.styleFrom(foregroundColor: Colors.blue),
+                style: TextButton.styleFrom(foregroundColor: Colors.amber), // Usar ámbar como en las cards
               ),
             ),
             const SizedBox(height: 8),
@@ -988,7 +988,7 @@ class _TimerScreenState extends State<TimerScreen> {
   Color _getBackgroundColor() {
     // Si el timer ha terminado (tiempo 0 y no está corriendo)
     if (_currentSeconds == 0 && !_isRunning) {
-      return Colors.red.withOpacity(0.6); // 🔴 Rojo intenso para finalizado
+      return Colors.orange.withOpacity(0.8); // � Naranja intenso como las cards del menú
     }
 
     // Si no está corriendo o está pausado, usar fondo neutro
@@ -996,28 +996,32 @@ class _TimerScreenState extends State<TimerScreen> {
       return Theme.of(context).scaffoldBackgroundColor;
     }
 
-    // Durante la preparación - azul para calma antes del ejercicio
+    // Durante la preparación - ámbar para coincidir con las cards del menú
     if (_isPreparation) {
-      return Colors.blue.withOpacity(0.5); // 🔵 Azul intenso para preparación
+      return Colors.blue.withOpacity(0.7); // � Ámbar como las cards del menú
     }
 
     // Estados específicos por tipo de timer con colores intuitivos
     switch (widget.timerType) {
       case 'TABATA':
         return _isWorkPeriod
-            ? Colors.green.withOpacity(0.5) // 🟢 Verde intenso para trabajar
-            : Colors.orange.withOpacity(0.5); // 🟠 Naranja intenso para descanso
+            ? Colors.green.withOpacity(0.7) // 🟢 Verde de la card COUNTDOWN para trabajar
+            : Colors.blue.withOpacity(
+                0.7,
+              ); // � Azul de la card EMOM para descanso
 
       case 'RUNNING':
         return _isRunningDistance
-            ? Colors.green.withOpacity(0.5) // 🟢 Verde intenso para correr
-            : Colors.orange.withOpacity(0.5); // 🟠 Naranja intenso para descanso
+            ? Colors.green.withOpacity(0.7) // 🟢 Verde de la card COUNTDOWN para correr
+            : Colors.blue.withOpacity(
+                0.7,
+              ); // � Azul de la card EMOM para descanso
 
       case 'AMRAP':
       case 'EMOM':
       case 'COUNTDOWN':
       default:
-        return Colors.green.withOpacity(0.5); // 🟢 Verde intenso para ejercicio
+        return Colors.green.withOpacity(0.7); // 🟢 Verde como las cards del menú
     }
   }
 
@@ -1029,10 +1033,10 @@ class _TimerScreenState extends State<TimerScreen> {
     Color statusColor;
     IconData statusIcon;
 
-    // Determinar texto, color e icono según el estado con colores intuitivos
+    // Determinar texto, color e icono según el estado con colores del menú
     if (_currentSeconds == 0 && !_isRunning) {
       statusText = languageProvider.getText('completed');
-      statusColor = Colors.red; // 🔴 Rojo para finalizado
+      statusColor = Colors.orange; // � Naranja intenso como las cards del menú
       statusIcon = Icons.check_circle;
     } else if (!_isRunning || _isPaused) {
       statusText = _isPaused
@@ -1042,26 +1046,28 @@ class _TimerScreenState extends State<TimerScreen> {
       statusIcon = _isPaused ? Icons.pause_circle : Icons.play_circle;
     } else if (_isPreparation) {
       statusText = languageProvider.getText('prepare');
-      statusColor = Colors.blue; // 🔵 Azul para preparación
+      statusColor = Colors.blue; // � Ámbar como las cards del menú
       statusIcon = Icons.fitness_center;
     } else {
       switch (widget.timerType) {
         case 'TABATA':
-          statusText = _isWorkPeriod ? 'ENTRENANDO' : 'DESCANSO';
+          statusText = _isWorkPeriod ? 'ENTRENAMIENTO' : 'RECUPERACIÓN';
           statusColor = _isWorkPeriod
-              ? Colors.green // 🟢 Verde para trabajar
-              : Colors.orange; // 🟠 Naranja para descanso
+              ? Colors
+                    .green // 🟢 Verde de la card COUNTDOWN para trabajar
+              : Colors.blue; // � Azul de la card EMOM para descanso
           statusIcon = _isWorkPeriod ? Icons.flash_on : Icons.pause;
           break;
         case 'RUNNING':
-          statusText = _isRunningDistance ? 'CORRIENDO' : 'DESCANSO';
+          statusText = _isRunningDistance ? 'EJERCICIO' : 'RECUPERACIÓN';
           statusColor = _isRunningDistance
-              ? Colors.green // 🟢 Verde para correr
-              : Colors.orange; // 🟠 Naranja para descanso
+              ? Colors
+                    .green // 🟢 Verde de la card COUNTDOWN para correr
+              : Colors.blue; // � Azul de la card EMOM para descanso
           statusIcon = _isRunningDistance ? Icons.directions_run : Icons.pause;
           break;
         default:
-          statusText = 'ENTRENANDO';
+          statusText = 'EJERCICIO';
           statusColor = Colors.green; // 🟢 Verde para ejercicio
           statusIcon = Icons.fitness_center;
       }
@@ -1069,30 +1075,51 @@ class _TimerScreenState extends State<TimerScreen> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: statusColor.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: statusColor.withOpacity(0.6), width: 2),
+        color: Colors.white.withOpacity(0.98), // Fondo más opaco para mejor legibilidad
+        borderRadius: BorderRadius.circular(25),
+        border: Border.all(color: statusColor.withOpacity(0.4), width: 2), // Borde más visible
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.15), // Sombra más fuerte
+            blurRadius: 12,
+            spreadRadius: 3,
+            offset: const Offset(0, 6),
+          ),
+          BoxShadow(
+            color: statusColor.withOpacity(0.3),
+            blurRadius: 8,
+            spreadRadius: 1,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(statusIcon, color: statusColor, size: 24),
-          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: statusColor.withOpacity(0.15), // Fondo más visible
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(statusIcon, color: statusColor, size: 20),
+          ),
+          const SizedBox(width: 12),
           Text(
-            statusText.toUpperCase(),
+            statusText,
             style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: statusColor,
-              letterSpacing: 1.2,
+              fontSize: 16,
+              fontWeight: FontWeight.w700, // Texto más bold
+              color: Colors.grey[800], // Color más oscuro para mejor contraste
+              letterSpacing: 0.5,
             ),
           ),
         ],
       ),
-    ).animate().fadeIn(duration: 300.ms).scale(begin: const Offset(0.8, 0.8));
+    ).animate().fadeIn(duration: 300.ms).scale(begin: const Offset(0.9, 0.9));
   }
 
   IconData _getTimerIcon() {
@@ -1294,11 +1321,20 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
     return Scaffold(
       backgroundColor: _getBackgroundColor(),
       appBar: AppBar(
+        backgroundColor: Colors.black.withOpacity(0.6), // Fondo más opaco para mejor legibilidad
+        elevation: 0,
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(_getTimerIcon(), size: 26, color: Colors.white),
-            const SizedBox(width: 10),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(_getTimerIcon(), size: 24, color: Colors.white),
+            ),
+            const SizedBox(width: 12),
             Flexible(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -1307,14 +1343,14 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                   Text(
                     widget.timerType,
                     style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 18,
                       color: Colors.white,
                       shadows: [
                         Shadow(
-                          color: Colors.black26,
-                          blurRadius: 4,
-                          offset: Offset(1, 1),
+                          color: Colors.black45,
+                          blurRadius: 6,
+                          offset: Offset(2, 2),
                         ),
                       ],
                     ),
@@ -1322,10 +1358,17 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                   ),
                   Text(
                     _getTimerSubtitle(),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w400,
-                      fontSize: 11,
-                      color: Colors.white70,
+                      fontSize: 12,
+                      color: Colors.white.withOpacity(0.9),
+                      shadows: [
+                        Shadow(
+                          color: Colors.black26,
+                          blurRadius: 3,
+                          offset: Offset(1, 1),
+                        ),
+                      ],
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -1434,12 +1477,12 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                           gradient: LinearGradient(
                             colors: _isWorkPeriod
                                 ? [
-                                    Colors.red.withOpacity(0.8),
+                                    Colors.green.withOpacity(0.8), // Verde para trabajo como las cards
                                     Colors.orange.withOpacity(0.6),
                                   ]
                                 : [
-                                    Colors.blue.withOpacity(0.8),
-                                    Colors.cyan.withOpacity(0.6),
+                                    Colors.amber.withOpacity(0.8), // Ámbar para descanso como las cards
+                                    Colors.orange.withOpacity(0.6),
                                   ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
@@ -1447,7 +1490,7 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                           borderRadius: BorderRadius.circular(30),
                           boxShadow: [
                             BoxShadow(
-                              color: (_isWorkPeriod ? Colors.red : Colors.blue)
+                              color: (_isWorkPeriod ? Colors.green : Colors.amber) // Colores del menú
                                   .withOpacity(0.4),
                               blurRadius: 15,
                               spreadRadius: 3,
@@ -1766,7 +1809,7 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                       // Botón Stop
                       _buildControlButton(
                             onPressed: () => Navigator.pop(context),
-                            backgroundColor: Colors.red[600]!,
+                            backgroundColor: Colors.orange[600]!, // Usar naranja de AMRAP como las cards
                             icon: Icons.stop,
                             label: languageProvider.getText('exit'),
                           )
