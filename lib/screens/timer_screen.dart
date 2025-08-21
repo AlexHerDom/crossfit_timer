@@ -150,7 +150,9 @@ class _TimerScreenState extends State<TimerScreen> {
       await _audioPlayer.setVolume(1.0); // 🔊 VOLUMEN MÁXIMO PARA EXTERIORES
       await _audioPlayer.play(AssetSource('sounds/halfway_special.wav'));
       HapticFeedback.lightImpact();
-      print("✅ Halfway beep especial reproducido exitosamente - VOLUMEN MÁXIMO");
+      print(
+        "✅ Halfway beep especial reproducido exitosamente - VOLUMEN MÁXIMO",
+      );
     } catch (e) {
       print("❌ Error reproduciendo halfway: $e");
       // Fallback
@@ -174,7 +176,9 @@ class _TimerScreenState extends State<TimerScreen> {
 
       // Esperar un momento y segundo beep
       await Future.delayed(const Duration(milliseconds: 300));
-      await _audioPlayer.setVolume(1.0); // 🔊 VOLUMEN MÁXIMO PARA EL SEGUNDO BEEP
+      await _audioPlayer.setVolume(
+        1.0,
+      ); // 🔊 VOLUMEN MÁXIMO PARA EL SEGUNDO BEEP
       await _audioPlayer.play(AssetSource('sounds/halfway.wav'));
       HapticFeedback.lightImpact();
 
@@ -225,7 +229,9 @@ class _TimerScreenState extends State<TimerScreen> {
         AssetSource('sounds/halfway.wav'),
       ); // Usamos el sonido de halfway que es más distintivo
       HapticFeedback.mediumImpact(); // Vibración más fuerte para marcar el final del minuto
-      print("✅ Minute complete sound reproducido exitosamente - VOLUMEN MÁXIMO");
+      print(
+        "✅ Minute complete sound reproducido exitosamente - VOLUMEN MÁXIMO",
+      );
     } catch (e) {
       print("❌ Error reproduciendo minute complete sound: $e");
       // Fallback con doble beep para distinguir
@@ -982,7 +988,7 @@ class _TimerScreenState extends State<TimerScreen> {
   Color _getBackgroundColor() {
     // Si el timer ha terminado (tiempo 0 y no está corriendo)
     if (_currentSeconds == 0 && !_isRunning) {
-      return Colors.red.withOpacity(0.2); // Rojo para finalizado
+      return Colors.red.withOpacity(0.6); // 🔴 Rojo intenso para finalizado
     }
 
     // Si no está corriendo o está pausado, usar fondo neutro
@@ -990,67 +996,73 @@ class _TimerScreenState extends State<TimerScreen> {
       return Theme.of(context).scaffoldBackgroundColor;
     }
 
-    // Durante la preparación - verde más visible
+    // Durante la preparación - azul para calma antes del ejercicio
     if (_isPreparation) {
-      return Colors.green.withOpacity(0.25); // Verde más intenso para preparación
+      return Colors.blue.withOpacity(0.5); // 🔵 Azul intenso para preparación
     }
 
-    // Estados específicos por tipo de timer con colores más visibles
+    // Estados específicos por tipo de timer con colores intuitivos
     switch (widget.timerType) {
       case 'TABATA':
-        return _isWorkPeriod 
-            ? Colors.blue.withOpacity(0.25)     // Azul más intenso para trabajo
-            : Colors.orange.withOpacity(0.25);  // Naranja más intenso para descanso
-      
+        return _isWorkPeriod
+            ? Colors.green.withOpacity(0.5) // 🟢 Verde intenso para trabajar
+            : Colors.orange.withOpacity(0.5); // 🟠 Naranja intenso para descanso
+
       case 'RUNNING':
-        return _isRunningDistance 
-            ? Colors.blue.withOpacity(0.25)     // Azul más intenso para correr
-            : Colors.orange.withOpacity(0.25);  // Naranja más intenso para descanso
-      
+        return _isRunningDistance
+            ? Colors.green.withOpacity(0.5) // 🟢 Verde intenso para correr
+            : Colors.orange.withOpacity(0.5); // 🟠 Naranja intenso para descanso
+
       case 'AMRAP':
       case 'EMOM':
       case 'COUNTDOWN':
       default:
-        return Colors.blue.withOpacity(0.25);  // Azul más intenso para tiempo de trabajo
+        return Colors.green.withOpacity(0.5); // 🟢 Verde intenso para ejercicio
     }
   }
 
   // 🏷️ Widget para mostrar el estado actual con color distintivo
   Widget _buildStatusIndicator() {
     final languageProvider = Provider.of<LanguageProvider>(context);
-    
+
     String statusText;
     Color statusColor;
     IconData statusIcon;
 
-    // Determinar texto, color e icono según el estado
+    // Determinar texto, color e icono según el estado con colores intuitivos
     if (_currentSeconds == 0 && !_isRunning) {
       statusText = languageProvider.getText('completed');
-      statusColor = Colors.red;
+      statusColor = Colors.red; // 🔴 Rojo para finalizado
       statusIcon = Icons.check_circle;
     } else if (!_isRunning || _isPaused) {
-      statusText = _isPaused ? languageProvider.getText('paused') : languageProvider.getText('ready');
+      statusText = _isPaused
+          ? languageProvider.getText('paused')
+          : languageProvider.getText('ready');
       statusColor = Colors.grey;
       statusIcon = _isPaused ? Icons.pause_circle : Icons.play_circle;
     } else if (_isPreparation) {
       statusText = languageProvider.getText('prepare');
-      statusColor = Colors.green;
+      statusColor = Colors.blue; // 🔵 Azul para preparación
       statusIcon = Icons.fitness_center;
     } else {
       switch (widget.timerType) {
         case 'TABATA':
-          statusText = _isWorkPeriod ? 'TRABAJO' : 'DESCANSO';
-          statusColor = _isWorkPeriod ? Colors.blue : Colors.orange;
+          statusText = _isWorkPeriod ? 'ENTRENANDO' : 'DESCANSO';
+          statusColor = _isWorkPeriod
+              ? Colors.green // 🟢 Verde para trabajar
+              : Colors.orange; // 🟠 Naranja para descanso
           statusIcon = _isWorkPeriod ? Icons.flash_on : Icons.pause;
           break;
         case 'RUNNING':
           statusText = _isRunningDistance ? 'CORRIENDO' : 'DESCANSO';
-          statusColor = _isRunningDistance ? Colors.blue : Colors.orange;
+          statusColor = _isRunningDistance
+              ? Colors.green // 🟢 Verde para correr
+              : Colors.orange; // 🟠 Naranja para descanso
           statusIcon = _isRunningDistance ? Icons.directions_run : Icons.pause;
           break;
         default:
           statusText = 'ENTRENANDO';
-          statusColor = Colors.blue;
+          statusColor = Colors.green; // 🟢 Verde para ejercicio
           statusIcon = Icons.fitness_center;
       }
     }
@@ -1080,10 +1092,7 @@ class _TimerScreenState extends State<TimerScreen> {
           ),
         ],
       ),
-    )
-        .animate()
-        .fadeIn(duration: 300.ms)
-        .scale(begin: const Offset(0.8, 0.8));
+    ).animate().fadeIn(duration: 300.ms).scale(begin: const Offset(0.8, 0.8));
   }
 
   IconData _getTimerIcon() {
@@ -1363,9 +1372,9 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // 🚨 Indicador de estado prominente
-                _buildStatusIndicator(),
-                
+                // 🚨 Indicador de estado prominente - COMENTADO por solicitud del usuario
+                // _buildStatusIndicator(),
+
                 // Indicador de preparación - responsivo y flexible
                 if (_isPreparation)
                   Container(

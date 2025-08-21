@@ -8,7 +8,7 @@ import '../services/audio_service.dart';
 class VolumeConfigWidget extends StatefulWidget {
   final String title;
   final String subtitle;
-  
+
   const VolumeConfigWidget({
     super.key,
     this.title = 'Volumen de Audio',
@@ -40,14 +40,14 @@ class _VolumeConfigWidgetState extends State<VolumeConfigWidget> {
     setState(() {
       _currentVolume = newVolume;
     });
-    
+
     await _audioService.setVolume(newVolume);
     print("🔊 Volumen actualizado a: $newVolume");
   }
 
   Future<void> _testVolume() async {
     if (_isTestingVolume) return;
-    
+
     setState(() {
       _isTestingVolume = true;
     });
@@ -60,7 +60,7 @@ class _VolumeConfigWidgetState extends State<VolumeConfigWidget> {
 
     // Esperar un poco antes de permitir otra prueba
     await Future.delayed(Duration(seconds: 2));
-    
+
     if (mounted) {
       setState(() {
         _isTestingVolume = false;
@@ -73,15 +73,12 @@ class _VolumeConfigWidgetState extends State<VolumeConfigWidget> {
     return Card(
       margin: EdgeInsets.all(16),
       elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            
             // 🎚️ TÍTULO Y DESCRIPCIÓN
             Row(
               children: [
@@ -106,26 +103,20 @@ class _VolumeConfigWidgetState extends State<VolumeConfigWidget> {
                       SizedBox(height: 4),
                       Text(
                         widget.subtitle,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
                     ],
                   ),
                 ),
               ],
             ),
-            
+
             SizedBox(height: 24),
-            
+
             // 🎚️ SLIDER DE VOLUMEN
             Row(
               children: [
-                Icon(
-                  Icons.volume_down,
-                  color: Colors.grey[600],
-                ),
+                Icon(Icons.volume_down, color: Colors.grey[600]),
                 Expanded(
                   child: Slider(
                     value: _currentVolume,
@@ -137,13 +128,10 @@ class _VolumeConfigWidgetState extends State<VolumeConfigWidget> {
                     onChanged: _updateVolume,
                   ),
                 ),
-                Icon(
-                  Icons.volume_up,
-                  color: Theme.of(context).primaryColor,
-                ),
+                Icon(Icons.volume_up, color: Theme.of(context).primaryColor),
               ],
             ),
-            
+
             // 📊 INFORMACIÓN DEL VOLUMEN ACTUAL
             Center(
               child: Container(
@@ -164,30 +152,29 @@ class _VolumeConfigWidgetState extends State<VolumeConfigWidget> {
                 ),
               ),
             ),
-            
+
             SizedBox(height: 20),
-            
+
             // 🧪 BOTÓN DE PRUEBA
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: _isTestingVolume ? null : _testVolume,
-                icon: _isTestingVolume 
-                  ? SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : Icon(Icons.play_circle_filled),
+                icon: _isTestingVolume
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
+                        ),
+                      )
+                    : Icon(Icons.play_circle_filled),
                 label: Text(
                   _isTestingVolume ? 'Reproduciendo...' : 'Probar Volumen',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).primaryColor,
@@ -199,27 +186,21 @@ class _VolumeConfigWidgetState extends State<VolumeConfigWidget> {
                 ),
               ),
             ),
-            
+
             SizedBox(height: 16),
-            
+
             // 💡 CONSEJOS PARA USO AL AIRE LIBRE
             Container(
               padding: EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Colors.orange.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: Colors.orange.withOpacity(0.3),
-                ),
+                border: Border.all(color: Colors.orange.withOpacity(0.3)),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    Icons.lightbulb_outline,
-                    color: Colors.orange,
-                    size: 20,
-                  ),
+                  Icon(Icons.lightbulb_outline, color: Colors.orange, size: 20),
                   SizedBox(width: 8),
                   Expanded(
                     child: Column(
