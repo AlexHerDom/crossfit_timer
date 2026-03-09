@@ -128,7 +128,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             (value) => setState(() => _soundEnabled = value),
             Icons.volume_up,
           ),
-          if (_soundEnabled) _buildVolumeControlTile(languageProvider),
+          if (_soundEnabled)
+            _buildVolumeControlTile(languageProvider),
 
           const SizedBox(height: 20),
 
@@ -344,16 +345,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: _getThemeColor().withOpacity(0.1),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: _getThemeColor().withOpacity(0.3),
-                    ),
+                    border: Border.all(color: _getThemeColor().withOpacity(0.3)),
                   ),
                   child: Text(
                     '${(_beepVolume * 100).round()}%',
@@ -366,9 +362,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ],
             ),
-
+            
             const SizedBox(height: 16),
-
+            
             // SLIDER DE VOLUMEN
             Row(
               children: [
@@ -390,9 +386,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Icon(Icons.volume_up, color: _getThemeColor(), size: 20),
               ],
             ),
-
+            
             const SizedBox(height: 12),
-
+            
             // BOTÓN DE PRUEBA
             SizedBox(
               width: double.infinity,
@@ -413,9 +409,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
             ),
-
+            
             const SizedBox(height: 12),
-
+            
             // CONSEJOS
             Container(
               padding: const EdgeInsets.all(12),
@@ -427,11 +423,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(
-                    Icons.lightbulb_outline,
-                    color: Colors.orange,
-                    size: 20,
-                  ),
+                  const Icon(Icons.lightbulb_outline, color: Colors.orange, size: 20),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Column(
@@ -480,7 +472,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         // Volumen bajo - vibración solamente
         HapticFeedback.lightImpact();
       }
-
+      
       // Mostrar feedback visual
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

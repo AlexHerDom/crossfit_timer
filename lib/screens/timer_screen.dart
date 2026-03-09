@@ -1051,7 +1051,7 @@ class _TimerScreenState extends State<TimerScreen> {
     } else {
       switch (widget.timerType) {
         case 'TABATA':
-          statusText = _isWorkPeriod ? 'ENTRENAMIENTO' : 'RECUPERACIÓN';
+          statusText = _isWorkPeriod ? 'ENTRENANDO' : 'DESCANSO';
           statusColor = _isWorkPeriod
               ? Colors
                     .green // 🟢 Verde de la card COUNTDOWN para trabajar
@@ -1059,7 +1059,7 @@ class _TimerScreenState extends State<TimerScreen> {
           statusIcon = _isWorkPeriod ? Icons.flash_on : Icons.pause;
           break;
         case 'RUNNING':
-          statusText = _isRunningDistance ? 'EJERCICIO' : 'RECUPERACIÓN';
+          statusText = _isRunningDistance ? 'CORRIENDO' : 'DESCANSO';
           statusColor = _isRunningDistance
               ? Colors
                     .green // 🟢 Verde de la card COUNTDOWN para correr
@@ -1067,7 +1067,7 @@ class _TimerScreenState extends State<TimerScreen> {
           statusIcon = _isRunningDistance ? Icons.directions_run : Icons.pause;
           break;
         default:
-          statusText = 'EJERCICIO';
+          statusText = 'ENTRENANDO';
           statusColor = Colors.green; // 🟢 Verde para ejercicio
           statusIcon = Icons.fitness_center;
       }
@@ -1075,51 +1075,30 @@ class _TimerScreenState extends State<TimerScreen> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.98), // Fondo más opaco para mejor legibilidad
-        borderRadius: BorderRadius.circular(25),
-        border: Border.all(color: statusColor.withOpacity(0.4), width: 2), // Borde más visible
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15), // Sombra más fuerte
-            blurRadius: 12,
-            spreadRadius: 3,
-            offset: const Offset(0, 6),
-          ),
-          BoxShadow(
-            color: statusColor.withOpacity(0.3),
-            blurRadius: 8,
-            spreadRadius: 1,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: statusColor.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: statusColor.withOpacity(0.6), width: 2),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.15), // Fondo más visible
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(statusIcon, color: statusColor, size: 20),
-          ),
-          const SizedBox(width: 12),
+          Icon(statusIcon, color: statusColor, size: 24),
+          const SizedBox(width: 8),
           Text(
-            statusText,
+            statusText.toUpperCase(),
             style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700, // Texto más bold
-              color: Colors.grey[800], // Color más oscuro para mejor contraste
-              letterSpacing: 0.5,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: statusColor,
+              letterSpacing: 1.2,
             ),
           ),
         ],
       ),
-    ).animate().fadeIn(duration: 300.ms).scale(begin: const Offset(0.9, 0.9));
+    ).animate().fadeIn(duration: 300.ms).scale(begin: const Offset(0.8, 0.8));
   }
 
   IconData _getTimerIcon() {
@@ -1321,20 +1300,11 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
     return Scaffold(
       backgroundColor: _getBackgroundColor(),
       appBar: AppBar(
-        backgroundColor: Colors.black.withOpacity(0.6), // Fondo más opaco para mejor legibilidad
-        elevation: 0,
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(_getTimerIcon(), size: 24, color: Colors.white),
-            ),
-            const SizedBox(width: 12),
+            Icon(_getTimerIcon(), size: 26, color: Colors.white),
+            const SizedBox(width: 10),
             Flexible(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -1343,14 +1313,14 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                   Text(
                     widget.timerType,
                     style: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 17,
                       color: Colors.white,
                       shadows: [
                         Shadow(
-                          color: Colors.black45,
-                          blurRadius: 6,
-                          offset: Offset(2, 2),
+                          color: Colors.black26,
+                          blurRadius: 4,
+                          offset: Offset(1, 1),
                         ),
                       ],
                     ),
@@ -1358,17 +1328,10 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                   ),
                   Text(
                     _getTimerSubtitle(),
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontWeight: FontWeight.w400,
-                      fontSize: 12,
-                      color: Colors.white.withOpacity(0.9),
-                      shadows: [
-                        Shadow(
-                          color: Colors.black26,
-                          blurRadius: 3,
-                          offset: Offset(1, 1),
-                        ),
-                      ],
+                      fontSize: 11,
+                      color: Colors.white70,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
