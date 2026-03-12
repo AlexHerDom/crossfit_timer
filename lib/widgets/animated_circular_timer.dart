@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import 'dart:ui';
 
 class AnimatedCircularTimer extends StatefulWidget {
   final int currentSeconds;
@@ -88,9 +89,9 @@ class _AnimatedCircularTimerState extends State<AnimatedCircularTimer>
   // Obtener color según el tiempo restante
   Color _getTimerColor() {
     if (widget.currentSeconds <= 10 && widget.currentSeconds > 0) {
-      return Colors.green; // Verde en los últimos 10 segundos
+      return Colors.red; // Rojo en los últimos 10 segundos (urgencia)
     }
-    return widget.timerColor; // Color normal
+    return widget.timerColor;
   }
 
   @override
@@ -122,16 +123,26 @@ class _AnimatedCircularTimerState extends State<AnimatedCircularTimer>
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  // Fondo del círculo
-                  Container(
-                    width: 260,
-                    height: 260,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Theme.of(context).colorScheme.surface,
-                      border: Border.all(
-                        color: _getTimerColor().withOpacity(0.2),
-                        width: 4,
+                  // Fondo del círculo con efecto glass
+                  ClipOval(
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                      child: Container(
+                        width: 260,
+                        height: 260,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: RadialGradient(
+                            colors: [
+                              Colors.white.withValues(alpha: 0.35),
+                              Colors.white.withValues(alpha: 0.15),
+                            ],
+                          ),
+                          border: Border.all(
+                            color: _getTimerColor().withValues(alpha: 0.3),
+                            width: 3,
+                          ),
+                        ),
                       ),
                     ),
                   ),

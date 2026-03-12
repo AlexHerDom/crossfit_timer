@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:flutter/services.dart'; // Para SystemSound y HapticFeedback
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
@@ -80,24 +81,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final languageProvider = Provider.of<LanguageProvider>(context);
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
           languageProvider.getText('settings'),
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+          style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                themeProvider.primaryColor.withOpacity(0.8),
-                themeProvider.primaryColor,
-              ],
-            ),
-          ),
-        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black87),
         actions: [
           IconButton(
             onPressed: () {
@@ -107,17 +100,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   content: Text(
                     '✅ ${languageProvider.getText('settings_saved')}',
                   ),
-                  duration: Duration(seconds: 2),
+                  duration: const Duration(seconds: 2),
                 ),
               );
             },
-            icon: const Icon(Icons.save, color: Colors.white),
+            icon: const Icon(Icons.save),
             tooltip: languageProvider.getText('save_settings'),
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16.0),
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFFE0F7FA), // Light Cyan
+                  Color(0xFFFCE4EC), // Light Pink
+                  Color(0xFFE8EAF6), // Light Indigo/Lavender
+                ],
+              ),
+            ),
+          ),
+          SafeArea(
+            child: ListView(
+              padding: const EdgeInsets.all(16.0),
         children: [
           // Sección de Audio
           _buildSectionHeader(languageProvider.getText('audio_section')),
@@ -208,6 +217,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // Información de la app
           _buildInfoSection(),
         ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -233,8 +245,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     ValueChanged<bool> onChanged,
     IconData icon,
   ) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
+    return _buildGlassCard(
       child: ListTile(
         leading: Icon(icon, color: _getThemeColor()),
         title: Text(title),
@@ -258,8 +269,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     IconData icon, {
     String suffix = '',
   }) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
+    return _buildGlassCard(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -314,8 +324,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   // 🔊 WIDGET ESPECIAL PARA CONTROL DE VOLUMEN CON PRUEBA
   Widget _buildVolumeControlTile(LanguageProvider languageProvider) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
+    return _buildGlassCard(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -488,8 +497,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildThemeSelector(ThemeProvider themeProvider) {
     final languageProvider = Provider.of<LanguageProvider>(context);
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
+    return _buildGlassCard(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -567,118 +575,136 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  Widget _buildGlassCard({required Widget child}) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            color: Colors.white.withOpacity(0.5),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.2),
+              width: 1,
+            ),
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+
   Widget _buildLanguageSelector() {
     return Consumer<LanguageProvider>(
       builder: (context, languageProvider, child) {
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.grey[50],
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey[300]!),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.language, color: _getThemeColor()),
-                  const SizedBox(width: 12),
-                  Text(
-                    languageProvider.getText('language_section'),
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(
+        return _buildGlassCard(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.language, color: _getThemeColor()),
+                    const SizedBox(width: 12),
+                    Text(
+                      languageProvider.getText('language_section'),
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: languageProvider.currentLanguage == 'es'
+                                ? _getThemeColor()
+                                : Colors.transparent,
+                            width: 2,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
                           color: languageProvider.currentLanguage == 'es'
-                              ? _getThemeColor()
-                              : Colors.grey[300]!,
-                          width: 2,
+                              ? _getThemeColor().withOpacity(0.1)
+                              : Colors.black.withOpacity(0.05),
                         ),
-                        borderRadius: BorderRadius.circular(8),
-                        color: languageProvider.currentLanguage == 'es'
-                            ? _getThemeColor().withOpacity(0.1)
-                            : Colors.white,
-                      ),
-                      child: InkWell(
-                        onTap: () {
-                          languageProvider.changeLanguage('es');
-                        },
-                        borderRadius: BorderRadius.circular(8),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Column(
-                            children: [
-                              Text('🇪🇸', style: TextStyle(fontSize: 32)),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Español',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  color:
-                                      languageProvider.currentLanguage == 'es'
-                                      ? _getThemeColor()
-                                      : Colors.grey[700],
+                        child: InkWell(
+                          onTap: () {
+                            languageProvider.changeLanguage('es');
+                          },
+                          borderRadius: BorderRadius.circular(8),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              children: [
+                                const Text('🇪🇸', style: TextStyle(fontSize: 32)),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Español',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    color:
+                                        languageProvider.currentLanguage == 'es'
+                                        ? _getThemeColor()
+                                        : Colors.grey[700],
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: languageProvider.currentLanguage == 'en'
+                                ? _getThemeColor()
+                                : Colors.transparent,
+                            width: 2,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
                           color: languageProvider.currentLanguage == 'en'
-                              ? _getThemeColor()
-                              : Colors.grey[300]!,
-                          width: 2,
+                              ? _getThemeColor().withOpacity(0.1)
+                              : Colors.black.withOpacity(0.05),
                         ),
-                        borderRadius: BorderRadius.circular(8),
-                        color: languageProvider.currentLanguage == 'en'
-                            ? _getThemeColor().withOpacity(0.1)
-                            : Colors.white,
-                      ),
-                      child: InkWell(
-                        onTap: () {
-                          languageProvider.changeLanguage('en');
-                        },
-                        borderRadius: BorderRadius.circular(8),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Column(
-                            children: [
-                              Text('🇺🇸', style: TextStyle(fontSize: 32)),
-                              const SizedBox(height: 4),
-                              Text(
-                                'English',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  color:
-                                      languageProvider.currentLanguage == 'en'
-                                      ? _getThemeColor()
-                                      : Colors.grey[700],
+                        child: InkWell(
+                          onTap: () {
+                            languageProvider.changeLanguage('en');
+                          },
+                          borderRadius: BorderRadius.circular(8),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              children: [
+                                const Text('🇺🇸', style: TextStyle(fontSize: 32)),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'English',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    color:
+                                        languageProvider.currentLanguage == 'en'
+                                        ? _getThemeColor()
+                                        : Colors.grey[700],
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -745,7 +771,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildInfoSection() {
     final languageProvider = Provider.of<LanguageProvider>(context);
-    return Card(
+    return _buildGlassCard(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

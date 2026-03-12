@@ -8,6 +8,7 @@ import 'language_provider.dart';
 import 'localization.dart';
 import 'services/license_manager.dart';
 import 'services/analytics_manager.dart';
+import 'services/notification_service.dart';
 
 void main() async {
   // Asegurar que Flutter esté inicializado
@@ -16,6 +17,7 @@ void main() async {
   // Inicializar servicios
   await LicenseManager.initialize();
   await AnalyticsManager.initialize();
+  await NotificationService.initialize();
 
   // Configurar orientación vertical para toda la app
   SystemChrome.setPreferredOrientations([

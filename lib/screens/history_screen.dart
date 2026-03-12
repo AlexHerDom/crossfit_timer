@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import '../theme_provider.dart';
@@ -110,16 +111,91 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
   }
 
+  Widget _buildHistoryItem(WorkoutHistory workout) {
+    final color = _getTypeColor(workout.type);
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                color.withOpacity(0.3),
+                color.withOpacity(0.2),
+              ],
+            ),
+            border: Border.all(
+              color: Colors.black.withOpacity(0.1),
+              width: 1,
+            ),
+          ),
+          child: ListTile(
+            leading: CircleAvatar(
+              backgroundColor: color.withOpacity(0.15),
+              child: Icon(
+                _getTypeIcon(workout.type),
+                color: Colors.black87,
+              ),
+            ),
+            title: Text(
+              workout.type,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: Colors.black87,
+              ),
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Duración: ${_formatDuration(workout.duration)}',
+                  style: TextStyle(color: Colors.black.withOpacity(0.7)),
+                ),
+                if (workout.rounds > 1)
+                  Text(
+                    'Rondas: ${workout.rounds}',
+                    style: TextStyle(color: Colors.black.withOpacity(0.7)),
+                  ),
+                Text(
+                  _formatDate(workout.date),
+                  style: TextStyle(
+                    color: Colors.black.withOpacity(0.5),
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+            trailing: Icon(
+              Icons.fitness_center,
+              color: color,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('Historial de Entrenamientos'),
+        title: const Text(
+          'Historial de Entrenamientos',
+          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
-        backgroundColor: themeProvider.primaryColor,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black87),
         actions: [
           if (_workoutHistory.isNotEmpty)
             IconButton(
@@ -129,77 +205,55 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
         ],
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: _workoutHistory.isEmpty
-                ? const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.history, size: 80, color: Colors.grey),
-                        SizedBox(height: 20),
-                        Text(
-                          'No hay entrenamientos registrados',
-                          style: TextStyle(fontSize: 18, color: Colors.grey),
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          'Completa tu primer entrenamiento para verlo aquí',
-                          style: TextStyle(fontSize: 14, color: Colors.grey),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _workoutHistory.length,
-                    itemBuilder: (context, index) {
-                      final workout = _workoutHistory[index];
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        elevation: 3,
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: _getTypeColor(workout.type),
-                            child: Icon(
-                              _getTypeIcon(workout.type),
-                              color: Colors.white,
-                            ),
-                          ),
-                          title: Text(
-                            workout.type,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFFE0F7FA), // Light Cyan
+                  Color(0xFFFCE4EC), // Light Pink
+                  Color(0xFFE8EAF6), // Light Indigo/Lavender
+                ],
+              ),
+            ),
+          ),
+          SafeArea(
+            child: Column(
+              children: [
+                Expanded(
+                  child: _workoutHistory.isEmpty
+                      ? const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
+                              Icon(Icons.history, size: 80, color: Colors.black38),
+                              SizedBox(height: 20),
                               Text(
-                                'Duración: ${_formatDuration(workout.duration)}',
+                                'No hay entrenamientos registrados',
+                                style: TextStyle(fontSize: 18, color: Colors.black54),
                               ),
-                              if (workout.rounds > 1)
-                                Text('Rondas: ${workout.rounds}'),
+                              SizedBox(height: 10),
                               Text(
-                                _formatDate(workout.date),
-                                style: const TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 12,
-                                ),
+                                'Completa tu primer entrenamiento para verlo aquí',
+                                style: TextStyle(fontSize: 14, color: Colors.black45),
+                                textAlign: TextAlign.center,
                               ),
                             ],
                           ),
-                          trailing: Icon(
-                            Icons.fitness_center,
-                            color: _getTypeColor(workout.type),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: _workoutHistory.length,
+                                              itemBuilder: (context, index) {
+                                                final workout = _workoutHistory[index];
+                                                return _buildHistoryItem(workout);
+                                              },                        ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -50,14 +51,11 @@ class _HomeScreenState extends State<HomeScreen> {
     final languageProvider = Provider.of<LanguageProvider>(context);
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text(
-          languageProvider.getText('workout_timer'),
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        backgroundColor: themeProvider.primaryColor,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        foregroundColor: Colors.black87,
         actions: [
           IconButton(
             onPressed: () => Navigator.push(
@@ -97,194 +95,124 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Título de bienvenida con animación más atractivo
-            Column(
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFFE0F7FA), // Light Cyan
+                  Color(0xFFFCE4EC), // Light Pink
+                  Color(0xFFE8EAF6), // Light Indigo/Lavender
+                ],
+              ),
+            ),
+          ),
+          SafeArea(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            languageProvider.getText('workout_timer'),
-                            style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: themeProvider.primaryColor,
-                              letterSpacing: 1.5,
-                            ),
-                            textAlign: TextAlign.center,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Colors.amber, Colors.orange],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.orange.withOpacity(0.3),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
+                    // Título de bienvenida
+                    Column(
+                          children: [
+                            Text(
+                              languageProvider.getText('workout_timer'),
+                              style: const TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                                letterSpacing: 1.5,
                               ),
-                            ],
-                          ),
-                          child: const Text(
-                            'PRO',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              shadows: [
-                                Shadow(
-                                  color: Colors.black26,
-                                  blurRadius: 2,
-                                  offset: Offset(1, 1),
-                                ),
-                              ],
+                              textAlign: TextAlign.center,
                             ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: themeProvider.primaryColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: themeProvider.primaryColor.withOpacity(0.3),
-                          width: 1,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.sports_gymnastics,
-                            size: 18,
-                            color: themeProvider.primaryColor,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            languageProvider.getText('time_train'),
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: themeProvider.primaryColor,
-                              fontStyle: FontStyle.italic,
+                            const SizedBox(height: 6),
+                            Text(
+                              languageProvider.getText('time_train'),
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w400,
+                                color: Colors.black.withOpacity(0.7),
+                                fontStyle: FontStyle.italic,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
+                          ],
+                        )
+                        .animate()
+                        .fadeIn(duration: 400.ms, delay: 50.ms)
+                        .slideY(begin: -0.2, end: 0),
+
+                    const SizedBox(height: 40),
+
+                    // Botón AMRAP
+                    _buildTimerButton(
+                      context,
+                      title: languageProvider.getText('amrap_title'),
+                      subtitle: languageProvider.getText('amrap_subtitle'),
+                      icon: Icons.all_inclusive,
+                      color: Colors.orange,
+                      onTap: () => _navigateToTimer(context, 'AMRAP'),
+                    ).animate().fadeIn(duration: 400.ms, delay: 100.ms).slideY(begin: 0.15, end: 0),
+
+                    const SizedBox(height: 16),
+
+                    // Botón EMOM
+                    _buildTimerButton(
+                      context,
+                      title: languageProvider.getText('emom_title'),
+                      subtitle: languageProvider.getText('emom_subtitle'),
+                      icon: Icons.access_time,
+                      color: Colors.blue,
+                      onTap: () => _navigateToTimer(context, 'EMOM'),
+                    ).animate().fadeIn(duration: 400.ms, delay: 175.ms).slideY(begin: 0.15, end: 0),
+
+                    const SizedBox(height: 16),
+
+                    // Botón Tabata
+                    _buildTimerButton(
+                      context,
+                      title: languageProvider.getText('tabata_title'),
+                      subtitle: _getTabataSubtitle(languageProvider),
+                      icon: Icons.flash_on,
+                      color: Colors.red,
+                      onTap: () => _navigateToTimer(context, 'TABATA'),
+                    ).animate().fadeIn(duration: 400.ms, delay: 250.ms).slideY(begin: 0.15, end: 0),
+
+                    const SizedBox(height: 16),
+
+                    // Botón Countdown
+                    _buildTimerButton(
+                      context,
+                      title: languageProvider.getText('countdown_title'),
+                      subtitle: languageProvider.getText('countdown_subtitle'),
+                      icon: Icons.timer,
+                      color: Colors.green,
+                      onTap: () => _navigateToTimer(context, 'COUNTDOWN'),
+                    ).animate().fadeIn(duration: 400.ms, delay: 325.ms).slideY(begin: 0.15, end: 0),
+
+                    const SizedBox(height: 16),
+
+                    // Botón Running
+                    _buildTimerButton(
+                      context,
+                      title: languageProvider.getText('running_title'),
+                      subtitle: languageProvider.getText('running_subtitle'),
+                      icon: Icons.directions_run,
+                      color: Colors.purple,
+                      onTap: () => _navigateToTimer(context, 'RUNNING'),
+                    ).animate().fadeIn(duration: 400.ms, delay: 400.ms).slideY(begin: 0.15, end: 0),
+
+                    const SizedBox(height: 40),
                   ],
-                )
-                .animate()
-                .fadeIn(duration: 600.ms, delay: 100.ms)
-                .slideY(begin: -0.3, end: 0),
-
-            const SizedBox(height: 40),
-
-            // Botón AMRAP con animación
-            _buildTimerButton(
-                  context,
-                  title: languageProvider.getText('amrap_title'),
-                  subtitle: languageProvider.getText('amrap_subtitle'),
-                  icon: Icons.all_inclusive,
-                  color: Colors.orange,
-                  onTap: () => _navigateToTimer(context, 'AMRAP'),
-                )
-                .animate()
-                .fadeIn(duration: 600.ms, delay: 200.ms)
-                .slideX(begin: -0.3, end: 0)
-                .shimmer(delay: 1000.ms, duration: 1500.ms),
-
-            const SizedBox(height: 20),
-
-            // Botón EMOM con animación
-            _buildTimerButton(
-                  context,
-                  title: languageProvider.getText('emom_title'),
-                  subtitle: languageProvider.getText('emom_subtitle'),
-                  icon: Icons.access_time,
-                  color: Colors.blue,
-                  onTap: () => _navigateToTimer(context, 'EMOM'),
-                )
-                .animate()
-                .fadeIn(duration: 600.ms, delay: 300.ms)
-                .slideX(begin: 0.3, end: 0)
-                .shimmer(delay: 1200.ms, duration: 1500.ms),
-
-            const SizedBox(height: 20),
-
-            // Botón Tabata con animación
-            _buildTimerButton(
-                  context,
-                  title: languageProvider.getText('tabata_title'),
-                  subtitle: _getTabataSubtitle(languageProvider),
-                  icon: Icons.flash_on,
-                  color: Colors.red,
-                  onTap: () => _navigateToTimer(context, 'TABATA'),
-                )
-                .animate()
-                .fadeIn(duration: 600.ms, delay: 400.ms)
-                .slideX(begin: -0.3, end: 0)
-                .shimmer(delay: 1400.ms, duration: 1500.ms),
-
-            const SizedBox(height: 20),
-
-            // Botón Countdown con animación
-            _buildTimerButton(
-                  context,
-                  title: languageProvider.getText('countdown_title'),
-                  subtitle: languageProvider.getText('countdown_subtitle'),
-                  icon: Icons.timer,
-                  color: Colors.green,
-                  onTap: () => _navigateToTimer(context, 'COUNTDOWN'),
-                )
-                .animate()
-                .fadeIn(duration: 600.ms, delay: 500.ms)
-                .slideX(begin: 0.3, end: 0)
-                .shimmer(delay: 1600.ms, duration: 1500.ms),
-
-            const SizedBox(height: 20),
-
-            // Botón Running con animación
-            _buildTimerButton(
-                  context,
-                  title: languageProvider.getText('running_title'),
-                  subtitle: languageProvider.getText('running_subtitle'),
-                  icon: Icons.directions_run,
-                  color: Colors.purple,
-                  onTap: () => _navigateToTimer(context, 'RUNNING'),
-                )
-                .animate()
-                .fadeIn(duration: 600.ms, delay: 600.ms)
-                .slideX(begin: -0.3, end: 0)
-                .shimmer(delay: 1800.ms, duration: 1500.ms),
-
-            const SizedBox(height: 40),
-          ],
-        ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -298,113 +226,95 @@ class _HomeScreenState extends State<HomeScreen> {
     required Color color,
     required VoidCallback onTap,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.1), // Sombra más sutil
-            blurRadius: 8, // Menos difuso
-            spreadRadius: 1, // Menos extensión
-            offset: const Offset(0, 4), // Sombra más pequeña
-          ),
-        ],
-      ),
-      child: SizedBox(
-        width: double.infinity,
-        height: 80,
-        child: ElevatedButton(
-          onPressed: onTap,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: color,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15),
-            ),
-            elevation: 3, // Menos elevación
-            shadowColor: color.withOpacity(0.2), // Sombra más sutil
-          ),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(15),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [color.withOpacity(0.9), color, color.withOpacity(0.8)],
-              ),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(icon, size: 40, color: Colors.white),
-                ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          shadows: [
-                            Shadow(
-                              color: Colors.black26,
-                              blurRadius: 4,
-                              offset: Offset(1, 1),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Text(
-                        subtitle,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w300,
-                          shadows: [
-                            Shadow(
-                              color: Colors.black26,
-                              blurRadius: 2,
-                              offset: Offset(1, 1),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Botón de configuración mejorado
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: IconButton(
-                    onPressed: () => _openConfigScreen(context, title),
-                    icon: const Icon(Icons.settings),
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Icon(
-                    Icons.arrow_forward_ios,
-                    color: Colors.white,
-                  ),
-                ),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(24),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8), // Increased blur
+        child: Container(
+          height: 88,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                color.withOpacity(0.3), // Slightly reduced opacity
+                color.withOpacity(0.2), // Slightly reduced opacity
               ],
+            ),
+            border: Border.all(
+              color: Colors.black.withOpacity(0.1), // Darker border
+              width: 1,
+            ),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(24),
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(24),
+              splashColor: color.withOpacity(0.1),
+              highlightColor: color.withOpacity(0.05),
+              child: Row(
+                children: [
+                  // Icono izquierdo
+                  SizedBox(
+                    width: 72,
+                    child: Icon(icon, size: 34, color: Colors.black87),
+                  ),
+                  // Texto
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            title,
+                            softWrap: false,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          subtitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.black.withOpacity(0.7),
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Botón configuración
+                  IconButton(
+                    onPressed: () => _openConfigScreen(context, title),
+                    icon: const Icon(Icons.settings_outlined, size: 22),
+                    color: Colors.black.withOpacity(0.75),
+                    splashRadius: 22,
+                    tooltip: 'Configurar',
+                  ),
+                  // Flecha
+                  Padding(
+                    padding: const EdgeInsets.only(right: 14),
+                    child: Icon(
+                      Icons.chevron_right_rounded,
+                      color: Colors.black.withOpacity(0.8),
+                      size: 28,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -499,7 +409,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   'v1.0.0 - Complete',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.white,
+                    color: Colors.black87,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

@@ -192,190 +192,212 @@ class _ConfigScreenState extends State<ConfigScreen> {
     final languageProvider = Provider.of<LanguageProvider>(context);
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
           '${languageProvider.getText('configure')} ${widget.timerType}',
+          style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        backgroundColor: themeProvider.primaryColor,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black87),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Form(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '${languageProvider.getText('customize_workout')} ${widget.timerType}',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFFE0F7FA), // Light Cyan
+                  Color(0xFFFCE4EC), // Light Pink
+                  Color(0xFFE8EAF6), // Light Indigo/Lavender
+                ],
               ),
-              const SizedBox(height: 30),
-
-              // Tiempo de preparación (común para todos excepto COUNTDOWN y RUNNING)
-              if (widget.timerType != 'COUNTDOWN' &&
-                  widget.timerType != 'RUNNING') ...[
-                _buildTimeField(
-                  languageProvider.getText('preparation_time'),
-                  _preparationController,
-                  languageProvider,
-                  suffix: languageProvider.getText('seconds_suffix'),
-                ),
-                const SizedBox(height: 20),
-              ],
-
-              // Configuración específica para cada tipo
-              if (widget.timerType == 'AMRAP') ...[
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildTimeField(
-                        languageProvider.getText('minutes'),
-                        _minutesController,
-                        languageProvider,
-                        suffix: languageProvider.getText('min_suffix'),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _buildTimeField(
-                        languageProvider.getText('seconds'),
-                        _secondsController,
-                        languageProvider,
-                        suffix: languageProvider.getText('sec_suffix'),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-
-              if (widget.timerType == 'EMOM') ...[
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildTimeField(
-                        languageProvider.getText('minutes_per_round'),
-                        _minutesController,
-                        languageProvider,
-                        suffix: languageProvider.getText('min_suffix'),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _buildTimeField(
-                        languageProvider.getText('extra_seconds'),
-                        _secondsController,
-                        languageProvider,
-                        suffix: languageProvider.getText('sec_suffix'),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                _buildTimeField(
-                  languageProvider.getText('number_of_rounds'),
-                  _roundsController,
-                  languageProvider,
-                  suffix: languageProvider.getText('rounds_suffix'),
-                ),
-              ],
-
-              if (widget.timerType == 'TABATA') ...[
-                _buildTimeField(
-                  languageProvider.getText('work_time'),
-                  _workSecondsController,
-                  languageProvider,
-                  suffix: languageProvider.getText('seconds_suffix'),
-                ),
-                const SizedBox(height: 20),
-                _buildTimeField(
-                  languageProvider.getText('rest_time'),
-                  _restSecondsController,
-                  languageProvider,
-                  suffix: languageProvider.getText('seconds_suffix'),
-                ),
-                const SizedBox(height: 20),
-                _buildTimeField(
-                  languageProvider.getText('number_of_rounds'),
-                  _roundsController,
-                  languageProvider,
-                  suffix: languageProvider.getText('rounds_suffix'),
-                ),
-              ],
-
-              if (widget.timerType == 'COUNTDOWN') ...[
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildTimeField(
-                        languageProvider.getText('minutes'),
-                        _minutesController,
-                        languageProvider,
-                        suffix: languageProvider.getText('min_suffix'),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _buildTimeField(
-                        languageProvider.getText('seconds'),
-                        _secondsController,
-                        languageProvider,
-                        suffix: languageProvider.getText('sec_suffix'),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-
-              if (widget.timerType == 'RUNNING') ...[
-                _buildTimeField(
-                  languageProvider.getText('target_distance'),
-                  _runningDistanceController,
-                  languageProvider,
-                  suffix: languageProvider.getText('meters_suffix'),
-                ),
-                const SizedBox(height: 20),
-                _buildTimeField(
-                  languageProvider.getText('rest_between_rounds'),
-                  _runningRestController,
-                  languageProvider,
-                  suffix: languageProvider.getText('seconds_suffix'),
-                ),
-                const SizedBox(height: 20),
-                _buildTimeField(
-                  languageProvider.getText('number_of_rounds'),
-                  _roundsController,
-                  languageProvider,
-                  suffix: languageProvider.getText('rounds_suffix'),
-                ),
-              ],
-
-              const Spacer(),
-
-              // Botón para guardar
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _saveConfig,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: Text(
-                    languageProvider.getText('save_configuration'),
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-            ],
+            ),
           ),
-        ),
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Form(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${languageProvider.getText('customize_workout')} ${widget.timerType}',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+
+                    // Tiempo de preparación (común para todos excepto COUNTDOWN y RUNNING)
+                    if (widget.timerType != 'COUNTDOWN' &&
+                        widget.timerType != 'RUNNING') ...[
+                      _buildTimeField(
+                        languageProvider.getText('preparation_time'),
+                        _preparationController,
+                        languageProvider,
+                        suffix: languageProvider.getText('seconds_suffix'),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+
+                    // Configuración específica para cada tipo
+                    if (widget.timerType == 'AMRAP') ...[
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildTimeField(
+                              languageProvider.getText('minutes'),
+                              _minutesController,
+                              languageProvider,
+                              suffix: languageProvider.getText('min_suffix'),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _buildTimeField(
+                              languageProvider.getText('seconds'),
+                              _secondsController,
+                              languageProvider,
+                              suffix: languageProvider.getText('sec_suffix'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+
+                    if (widget.timerType == 'EMOM') ...[
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildTimeField(
+                              languageProvider.getText('minutes_per_round'),
+                              _minutesController,
+                              languageProvider,
+                              suffix: languageProvider.getText('min_suffix'),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _buildTimeField(
+                              languageProvider.getText('extra_seconds'),
+                              _secondsController,
+                              languageProvider,
+                              suffix: languageProvider.getText('sec_suffix'),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      _buildTimeField(
+                        languageProvider.getText('number_of_rounds'),
+                        _roundsController,
+                        languageProvider,
+                        suffix: languageProvider.getText('rounds_suffix'),
+                      ),
+                    ],
+
+                    if (widget.timerType == 'TABATA') ...[
+                      _buildTimeField(
+                        languageProvider.getText('work_time'),
+                        _workSecondsController,
+                        languageProvider,
+                        suffix: languageProvider.getText('seconds_suffix'),
+                      ),
+                      const SizedBox(height: 20),
+                      _buildTimeField(
+                        languageProvider.getText('rest_time'),
+                        _restSecondsController,
+                        languageProvider,
+                        suffix: languageProvider.getText('seconds_suffix'),
+                      ),
+                      const SizedBox(height: 20),
+                      _buildTimeField(
+                        languageProvider.getText('number_of_rounds'),
+                        _roundsController,
+                        languageProvider,
+                        suffix: languageProvider.getText('rounds_suffix'),
+                      ),
+                    ],
+
+                    if (widget.timerType == 'COUNTDOWN') ...[
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildTimeField(
+                              languageProvider.getText('minutes'),
+                              _minutesController,
+                              languageProvider,
+                              suffix: languageProvider.getText('min_suffix'),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _buildTimeField(
+                              languageProvider.getText('seconds'),
+                              _secondsController,
+                              languageProvider,
+                              suffix: languageProvider.getText('sec_suffix'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+
+                    if (widget.timerType == 'RUNNING') ...[
+                      _buildTimeField(
+                        languageProvider.getText('target_distance'),
+                        _runningDistanceController,
+                        languageProvider,
+                        suffix: languageProvider.getText('meters_suffix'),
+                      ),
+                      const SizedBox(height: 20),
+                      _buildTimeField(
+                        languageProvider.getText('rest_between_rounds'),
+                        _runningRestController,
+                        languageProvider,
+                        suffix: languageProvider.getText('seconds_suffix'),
+                      ),
+                      const SizedBox(height: 20),
+                      _buildTimeField(
+                        languageProvider.getText('number_of_rounds'),
+                        _roundsController,
+                        languageProvider,
+                        suffix: languageProvider.getText('rounds_suffix'),
+                      ),
+                    ],
+
+                    const SizedBox(height: 24), // Replaced Spacer
+
+                    // Botón para guardar
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: _saveConfig,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: Text(
+                          languageProvider.getText('save_configuration'),
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

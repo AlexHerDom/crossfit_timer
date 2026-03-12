@@ -126,8 +126,8 @@ class LanguageProvider extends ChangeNotifier {
         'rest_10s': '😮‍💨 10s descanso',
 
         'round': 'Ronda',
-        'work': 'Trabajo',
-        'rest': 'Descanso',
+        'work': 'Acción',
+        'rest': 'Pausa',
         'get_ready': 'Prepárate',
         'start': 'Inicio',
         'pause': 'Pausa',
@@ -138,7 +138,7 @@ class LanguageProvider extends ChangeNotifier {
         'minute_complete': 'Minuto completado',
 
         // Home Screen
-        'workout_timer': 'Workout Timer',
+        'workout_timer': 'CrossFit Timer Pro',
         'time_train': 'Es hora de entrenar',
         'amrap_title': 'AMRAP',
         'amrap_subtitle': 'Máximas rondas posibles',
@@ -149,11 +149,11 @@ class LanguageProvider extends ChangeNotifier {
         'countdown_title': 'COUNTDOWN',
         'countdown_subtitle': 'Temporizador simple',
         'running_title': 'RUNNING',
-        'running_subtitle': 'Intervalos de carrera',
+        'running_subtitle': 'Intervalos de running',
 
         // Running specific texts
         'run_distance': 'CORRE {distance}M',
-        'running_rest': 'DESCANSO',
+        'running_rest': 'PAUSA',
         'completed_distance': 'TERMINÉ LA DISTANCIA',
         'skip_rest': 'SALTAR DESCANSO',
         'next_interval': 'Próximo: {distance}m',
@@ -235,12 +235,12 @@ class LanguageProvider extends ChangeNotifier {
         'premium_themes': 'Temas Premium y Sonidos Profesionales',
         'incredible_value': 'VALOR INCREÍBLE',
         'other_apps_cost':
-            'Otras apps premium: \$120/año\\nWorkout Timer PRO: \$3.99 UNA VEZ\\n\\n🎉 ¡Ahorras \$116 al año!',
+            'Otras apps premium: \$120/año\\nWorkout Timer: \$3.99 UNA VEZ\\n\\n🎉 ¡Ahorras \$116 al año!',
         'developed_by':
             'Desarrollado con ❤️ por Alexander Herrera\\n📍 Especialista en Fitness Apps',
         'close': 'Cerrar',
         'love_it': '¡Me Encanta!',
-        'thanks_message': '¡Gracias por usar Workout Timer PRO!',
+        'thanks_message': '¡Gracias por usar Workout Timer!',
 
         // Running Summary
         'average': 'Promedio',
@@ -319,7 +319,7 @@ class LanguageProvider extends ChangeNotifier {
         'minute_complete': 'Minute complete',
 
         // Home Screen
-        'workout_timer': 'Workout Timer',
+        'workout_timer': 'CrossFit Timer Pro',
         'time_train': 'Time to train',
         'amrap_title': 'AMRAP',
         'amrap_subtitle': 'As Many Rounds As Possible',
@@ -424,12 +424,12 @@ class LanguageProvider extends ChangeNotifier {
         'premium_themes': 'Premium Themes and Professional Sounds',
         'incredible_value': 'INCREDIBLE VALUE',
         'other_apps_cost':
-            'Other premium apps: \$120/year\\nWorkout Timer PRO: \$3.99 ONCE\\n\\n🎉 Save \$116 per year!',
+            'Other premium apps: \$120/year\\nWorkout Timer: \$3.99 ONCE\\n\\n🎉 Save \$116 per year!',
         'developed_by':
             'Developed with ❤️ by Alexander Herrera\\n📍 Fitness Apps Specialist',
         'close': 'Close',
         'love_it': 'Love it!',
-        'thanks_message': 'Thanks for using Workout Timer PRO!',
+        'thanks_message': 'Thanks for using Workout Timer!',
 
         // Running Summary
         'average': 'Average',

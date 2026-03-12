@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:ui';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -12,6 +13,7 @@ import '../widgets/animated_circular_timer.dart';
 import '../widgets/confetti_effect.dart';
 import '../theme_provider.dart';
 import '../language_provider.dart';
+import '../services/notification_service.dart';
 import 'dart:async';
 
 class TimerScreen extends StatefulWidget {
@@ -64,6 +66,9 @@ class _TimerScreenState extends State<TimerScreen> {
   // Text-to-Speech
   final FlutterTts _flutterTts = FlutterTts();
 
+  // Suscripción a acciones de notificación (pausa/stop desde lock screen)
+  StreamSubscription<String>? _notificationActionSubscription;
+
   @override
   void initState() {
     super.initState();
@@ -74,6 +79,9 @@ class _TimerScreenState extends State<TimerScreen> {
     ]);
     _setupTts(); // Configurar Text-to-Speech
     _setupTimer();
+    NotificationService.requestPermissions();
+    _notificationActionSubscription =
+        NotificationService.actionStream.listen(_handleNotificationAction);
   }
 
   @override
@@ -88,6 +96,8 @@ class _TimerScreenState extends State<TimerScreen> {
     _timer?.cancel();
     _audioPlayer.dispose();
     _flutterTts.stop();
+    _notificationActionSubscription?.cancel();
+    NotificationService.cancelTimerNotification();
     // Asegurar que se desactive wakelock al salir
     WakelockPlus.disable();
     // Restaurar orientaciones normales al salir
@@ -98,6 +108,22 @@ class _TimerScreenState extends State<TimerScreen> {
       DeviceOrientation.landscapeRight,
     ]);
     super.dispose();
+  }
+
+  void _handleNotificationAction(String actionId) {
+    if (!mounted) return;
+    switch (actionId) {
+      case 'pause_action':
+        if (_isRunning) _pauseTimer();
+        break;
+      case 'resume_action':
+        if (_isPaused) _startTimer();
+        break;
+      case 'stop_action':
+        _resetTimer();
+        Navigator.of(context).pop();
+        break;
+    }
   }
 
   // Funciones para feedback de audio usando archivos de sonido
@@ -469,6 +495,16 @@ class _TimerScreenState extends State<TimerScreen> {
 
     // Si no hay preparación (como COUNTDOWN), anunciar el inicio inmediatamente
     if (!_isPreparation) {
+      // Mostrar notificación dinámica en pantalla de bloqueo con cronómetro nativo
+      NotificationService.showTimerNotification(
+        timerType: widget.timerType,
+        currentRound: _currentRound,
+        totalRounds: _totalRounds,
+        remainingSeconds: _currentSeconds,
+        totalSeconds: _totalSeconds,
+        isPaused: false,
+        isWorkPeriod: _isWorkPeriod,
+      );
       _speakWorkoutStart();
     }
 
@@ -542,6 +578,9 @@ class _TimerScreenState extends State<TimerScreen> {
             _handleTimerComplete();
           }
         }
+
+        // El cronómetro nativo de Android actualiza el countdown automáticamente.
+        // Solo actualizamos la notificación en cambios de ronda (ver _handleTimerComplete).
       });
     });
   }
@@ -570,6 +609,17 @@ class _TimerScreenState extends State<TimerScreen> {
       }
     });
 
+    // Mostrar notificación justo al terminar la preparación
+    NotificationService.showTimerNotification(
+      timerType: widget.timerType,
+      currentRound: _currentRound,
+      totalRounds: _totalRounds,
+      remainingSeconds: _currentSeconds,
+      totalSeconds: _totalSeconds,
+      isPaused: false,
+      isWorkPeriod: _isWorkPeriod,
+    );
+
     // Vibración intensa para marcar el inicio
     HapticFeedback.heavyImpact();
 
@@ -592,12 +642,24 @@ class _TimerScreenState extends State<TimerScreen> {
       _isPaused = true;
     });
 
+    // Actualizar notificación a estado pausado (muestra tiempo estático)
+    NotificationService.showTimerNotification(
+      timerType: widget.timerType,
+      currentRound: _currentRound,
+      totalRounds: _totalRounds,
+      remainingSeconds: _currentSeconds,
+      totalSeconds: _totalSeconds,
+      isPaused: true,
+      isWorkPeriod: _isWorkPeriod,
+    );
+
     // Permitir que la pantalla se bloquee al pausar
     WakelockPlus.disable();
   }
 
   void _resetTimer() {
     _timer?.cancel();
+    NotificationService.cancelTimerNotification();
     setState(() {
       _isRunning = false;
       _isPaused = false;
@@ -651,11 +713,17 @@ class _TimerScreenState extends State<TimerScreen> {
   }
 
   void _handleTimerComplete() async {
+    // Cancelar notificación ANTES del primer await para evitar que el cronómetro
+    // nativo de Android muestre tiempo negativo durante el gap asíncrono
+    if (widget.timerType == 'AMRAP' || widget.timerType == 'COUNTDOWN') {
+      _timer?.cancel();
+      NotificationService.cancelTimerNotification();
+    }
+
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     switch (widget.timerType) {
       case 'AMRAP':
-        _timer?.cancel();
         _playCompletionSound();
         _speakWorkoutComplete(); // Anuncio de voz cuando se completa
         _showCompletionDialog();
@@ -667,6 +735,15 @@ class _TimerScreenState extends State<TimerScreen> {
           int minutes = prefs.getInt('emom_minutes') ?? 1;
           int seconds = prefs.getInt('emom_seconds') ?? 0;
           _currentSeconds = (minutes * 60) + seconds;
+          NotificationService.showTimerNotification(
+            timerType: widget.timerType,
+            currentRound: _currentRound,
+            totalRounds: _totalRounds,
+            remainingSeconds: _currentSeconds,
+            totalSeconds: _currentSeconds,
+            isPaused: false,
+            isWorkPeriod: _isWorkPeriod,
+          );
         } else {
           _timer?.cancel();
           _playCompletionSound();
@@ -680,6 +757,15 @@ class _TimerScreenState extends State<TimerScreen> {
           _isWorkPeriod = false;
           _currentSeconds = prefs.getInt('tabata_rest') ?? 10;
           _playMinuteCompleteSound(); // Sonido especial al terminar trabajo
+          NotificationService.showTimerNotification(
+            timerType: widget.timerType,
+            currentRound: _currentRound,
+            totalRounds: _totalRounds,
+            remainingSeconds: _currentSeconds,
+            totalSeconds: _currentSeconds,
+            isPaused: false,
+            isWorkPeriod: false,
+          );
         } else {
           // Terminar descanso, siguiente ronda o completar
           _isWorkPeriod = true;
@@ -687,6 +773,15 @@ class _TimerScreenState extends State<TimerScreen> {
             _currentRound++;
             _currentSeconds = prefs.getInt('tabata_work') ?? 20;
             _playMinuteCompleteSound(); // Sonido especial al terminar descanso
+            NotificationService.showTimerNotification(
+              timerType: widget.timerType,
+              currentRound: _currentRound,
+              totalRounds: _totalRounds,
+              remainingSeconds: _currentSeconds,
+              totalSeconds: _currentSeconds,
+              isPaused: false,
+              isWorkPeriod: true,
+            );
           } else {
             _timer?.cancel();
             _playCompletionSound();
@@ -707,6 +802,15 @@ class _TimerScreenState extends State<TimerScreen> {
               _roundStartTime = 0; // Resetear tiempo de inicio para nueva ronda
             });
             _playMinuteCompleteSound(); // Sonido especial al terminar descanso
+            NotificationService.showTimerNotification(
+              timerType: widget.timerType,
+              currentRound: _currentRound,
+              totalRounds: _totalRounds,
+              remainingSeconds: _currentSeconds,
+              totalSeconds: 0,
+              isPaused: false,
+              isWorkPeriod: _isWorkPeriod,
+            );
             print("✅ Descanso terminado! Ronda $_currentRound - ¡A correr!");
           } else {
             // Completar el entrenamiento
@@ -718,7 +822,6 @@ class _TimerScreenState extends State<TimerScreen> {
         }
         break;
       case 'COUNTDOWN':
-        _timer?.cancel();
         _playCompletionSound();
         _speakWorkoutComplete(); // Anuncio de voz cuando se completa
         _showCompletionDialog();
@@ -733,6 +836,7 @@ class _TimerScreenState extends State<TimerScreen> {
       _showRunningSummary = true; // Mostrar resumen en lugar del timer
     });
 
+    NotificationService.cancelTimerNotification();
     // Permitir que la pantalla se bloquee al completar
     WakelockPlus.disable();
 
@@ -755,6 +859,7 @@ class _TimerScreenState extends State<TimerScreen> {
       _showConfetti = true;
     });
 
+    NotificationService.cancelTimerNotification();
     // Permitir que la pantalla se bloquee al completar
     WakelockPlus.disable();
 
@@ -777,119 +882,163 @@ class _TimerScreenState extends State<TimerScreen> {
           context,
           listen: false,
         );
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+              child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.fitness_center,
-                  color: Colors.orange,
-                  size: 32,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                languageProvider.getText('workout_completed'),
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.orange,
-                  fontSize: 18,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  _getCompletionMessage(),
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFFE0F7FA),
+                      Color(0xFFFCE4EC),
+                      Color(0xFFE8EAF6),
+                    ],
                   ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                languageProvider.getText('excellent_work'),
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[600],
-                  fontStyle: FontStyle.italic,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-          actionsAlignment: MainAxisAlignment.spaceEvenly,
-          actions: [
-            // Botón Compartir
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () {
-                  _shareWorkout();
-                },
-                icon: const Icon(Icons.share),
-                label: Text(languageProvider.getText('share')),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.green,
-                  side: const BorderSide(color: Colors.green),
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            // Botón Repetir
-            SizedBox(
-              width: double.infinity,
-              child: TextButton.icon(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  _resetTimer();
-                },
-                icon: const Icon(Icons.refresh),
-                label: Text(languageProvider.getText('repeat')),
-                style: TextButton.styleFrom(foregroundColor: Colors.amber), // Usar ámbar como en las cards
-              ),
-            ),
-            const SizedBox(height: 8),
-            // Botón Menú Principal
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop(); // Volver a la pantalla principal
-                },
-                icon: const Icon(Icons.home),
-                label: Text(languageProvider.getText('main_menu')),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.5),
+                    width: 1.5,
                   ),
                 ),
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Icono
+                    ClipOval(
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                        child: Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withValues(alpha: 0.25),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Colors.orange.withValues(alpha: 0.4),
+                              width: 1,
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.fitness_center,
+                            color: Colors.orange,
+                            size: 32,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      languageProvider.getText('workout_completed'),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.orange,
+                        fontSize: 18,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.orange.withValues(alpha: 0.3),
+                              width: 1,
+                            ),
+                          ),
+                          child: Text(
+                            _getCompletionMessage(),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      languageProvider.getText('excellent_work'),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[700],
+                        fontStyle: FontStyle.italic,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 20),
+                    // Botón Compartir
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () => _shareWorkout(),
+                        icon: const Icon(Icons.share),
+                        label: Text(languageProvider.getText('share')),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.green,
+                          side: BorderSide(color: Colors.green.withValues(alpha: 0.7)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    // Botón Repetir
+                    SizedBox(
+                      width: double.infinity,
+                      child: TextButton.icon(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          _resetTimer();
+                        },
+                        icon: const Icon(Icons.refresh),
+                        label: Text(languageProvider.getText('repeat')),
+                        style: TextButton.styleFrom(foregroundColor: Colors.amber),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    // Botón Menú Principal
+                    SizedBox(
+                      width: double.infinity,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              Navigator.of(context).pop();
+                            },
+                            icon: const Icon(Icons.home),
+                            label: Text(languageProvider.getText('main_menu')),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.orange.withValues(alpha: 0.7),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ],
+          ),
         );
       },
     );
@@ -969,60 +1118,20 @@ class _TimerScreenState extends State<TimerScreen> {
   Color _getTimerColor() {
     final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
 
-    // Paleta unificada: usar solo el color primario y grises
     switch (widget.timerType) {
       case 'TABATA':
-        // Para Tabata, usar tonos del color primario en lugar de rojo/azul
-        return _isWorkPeriod
-            ? themeProvider.primaryColor
-            : themeProvider.primaryColor.withOpacity(0.6);
+        // Naranja para trabajo (visible sobre verde), cian para descanso (visible sobre azul)
+        return _isWorkPeriod ? Colors.orange : Colors.cyan.shade300;
       case 'RUNNING':
-        // Para Running, usar el color primario
-        return themeProvider.primaryColor;
+        return _isRunningDistance ? Colors.orange : Colors.cyan.shade300;
       default:
         return themeProvider.primaryColor;
     }
   }
 
-  // 🎨 Nuevo método para colores de fondo según el estado del timer
+  // Fondo siempre neutro (sistema), el color del timer aporta el acento
   Color _getBackgroundColor() {
-    // Si el timer ha terminado (tiempo 0 y no está corriendo)
-    if (_currentSeconds == 0 && !_isRunning) {
-      return Colors.orange.withOpacity(0.8); // � Naranja intenso como las cards del menú
-    }
-
-    // Si no está corriendo o está pausado, usar fondo neutro
-    if (!_isRunning || _isPaused) {
-      return Theme.of(context).scaffoldBackgroundColor;
-    }
-
-    // Durante la preparación - ámbar para coincidir con las cards del menú
-    if (_isPreparation) {
-      return Colors.blue.withOpacity(0.7); // � Ámbar como las cards del menú
-    }
-
-    // Estados específicos por tipo de timer con colores intuitivos
-    switch (widget.timerType) {
-      case 'TABATA':
-        return _isWorkPeriod
-            ? Colors.green.withOpacity(0.7) // 🟢 Verde de la card COUNTDOWN para trabajar
-            : Colors.blue.withOpacity(
-                0.7,
-              ); // � Azul de la card EMOM para descanso
-
-      case 'RUNNING':
-        return _isRunningDistance
-            ? Colors.green.withOpacity(0.7) // 🟢 Verde de la card COUNTDOWN para correr
-            : Colors.blue.withOpacity(
-                0.7,
-              ); // � Azul de la card EMOM para descanso
-
-      case 'AMRAP':
-      case 'EMOM':
-      case 'COUNTDOWN':
-      default:
-        return Colors.green.withOpacity(0.7); // 🟢 Verde como las cards del menú
-    }
+    return Theme.of(context).scaffoldBackgroundColor;
   }
 
   // 🏷️ Widget para mostrar el estado actual con color distintivo
@@ -1051,7 +1160,7 @@ class _TimerScreenState extends State<TimerScreen> {
     } else {
       switch (widget.timerType) {
         case 'TABATA':
-          statusText = _isWorkPeriod ? 'ENTRENANDO' : 'DESCANSO';
+          statusText = _isWorkPeriod ? 'ACCIÓN' : 'PAUSA';
           statusColor = _isWorkPeriod
               ? Colors
                     .green // 🟢 Verde de la card COUNTDOWN para trabajar
@@ -1059,7 +1168,7 @@ class _TimerScreenState extends State<TimerScreen> {
           statusIcon = _isWorkPeriod ? Icons.flash_on : Icons.pause;
           break;
         case 'RUNNING':
-          statusText = _isRunningDistance ? 'CORRIENDO' : 'DESCANSO';
+          statusText = _isRunningDistance ? 'AVANZANDO' : 'PAUSA';
           statusColor = _isRunningDistance
               ? Colors
                     .green // 🟢 Verde de la card COUNTDOWN para correr
@@ -1067,7 +1176,7 @@ class _TimerScreenState extends State<TimerScreen> {
           statusIcon = _isRunningDistance ? Icons.directions_run : Icons.pause;
           break;
         default:
-          statusText = 'ENTRENANDO';
+          statusText = 'ACCIÓN';
           statusColor = Colors.green; // 🟢 Verde para ejercicio
           statusIcon = Icons.fitness_center;
       }
@@ -1196,6 +1305,11 @@ ${languageProvider.getText('keep_training')}
           SnackBar(
             content: Text(languageProvider.getText('share_error')),
             duration: const Duration(seconds: 2),
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           ),
         );
       }
@@ -1231,6 +1345,11 @@ ${languageProvider.getText('keep_training')}
           SnackBar(
             content: Text(languageProvider.getText('share_error')),
             duration: const Duration(seconds: 2),
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           ),
         );
       }
@@ -1298,13 +1417,12 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
     final languageProvider = Provider.of<LanguageProvider>(context);
 
     return Scaffold(
-      backgroundColor: _getBackgroundColor(),
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
+        iconTheme: const IconThemeData(color: Colors.black87), // For back button
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(_getTimerIcon(), size: 26, color: Colors.white),
-            const SizedBox(width: 10),
             Flexible(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -1315,23 +1433,16 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 17,
-                      color: Colors.white,
-                      shadows: [
-                        Shadow(
-                          color: Colors.black26,
-                          blurRadius: 4,
-                          offset: Offset(1, 1),
-                        ),
-                      ],
+                      color: Colors.black87,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
                     _getTimerSubtitle(),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w400,
                       fontSize: 11,
-                      color: Colors.white70,
+                      color: Colors.black.withOpacity(0.7),
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -1341,23 +1452,9 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
           ],
         ),
         centerTitle: true,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                (widget.timerType == 'TABATA'
-                        ? _getTimerColor()
-                        : themeProvider.primaryColor)
-                    .withOpacity(0.8),
-                (widget.timerType == 'TABATA'
-                    ? _getTimerColor()
-                    : themeProvider.primaryColor),
-              ],
-            ),
-          ),
-        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        foregroundColor: Colors.black87,
         actions: [
           IconButton(
             onPressed: _toggleFullScreen,
@@ -1372,8 +1469,23 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
       ),
       body: Stack(
         children: [
+          // Fondo con degradado
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFFE0F7FA), // Light Cyan
+                  Color(0xFFFCE4EC), // Light Pink
+                  Color(0xFFE8EAF6), // Light Indigo/Lavender
+                ],
+              ),
+            ),
+          ),
           // Contenido principal
-          Padding(
+          SafeArea(
+            child: Padding(
             padding: const EdgeInsets.all(20.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -1383,43 +1495,43 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
 
                 // Indicador de preparación - responsivo y flexible
                 if (_isPreparation)
-                  Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 12,
-                        ),
-                        margin: const EdgeInsets.symmetric(horizontal: 10),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.withOpacity(0.1), // Color neutro
-                          borderRadius: BorderRadius.circular(25),
-                          border: Border.all(
-                            color: Colors.grey.withOpacity(0.3),
-                            width: 1,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.sports_gymnastics,
-                              color: Colors.grey[600], // Color neutro
-                              size: 22,
+                  ClipRRect(
+                        borderRadius: BorderRadius.circular(25),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 12,
                             ),
-                            const SizedBox(width: 8),
-                            Flexible(
-                              child: Text(
-                                '${languageProvider.getText('prepare_for')} ${_getTimerSubtitle().toLowerCase()}',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.grey[700], // Color neutro
-                                ),
-                                textAlign: TextAlign.center,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
+                            margin: const EdgeInsets.symmetric(horizontal: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.25),
+                              borderRadius: BorderRadius.circular(25),
+                              border: Border.all(
+                                color: Colors.grey.withValues(alpha: 0.3),
+                                width: 1,
                               ),
                             ),
-                          ],
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    '${languageProvider.getText('prepare_for')} ${_getTimerSubtitle().toLowerCase()}',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.grey[700],
+                                    ),
+                                    textAlign: TextAlign.center,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       )
                       .animate()
@@ -1431,111 +1543,99 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
 
                 // Información del entrenamiento actual con animación
                 if (widget.timerType == 'TABATA' && !_isPreparation)
-                  Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 25,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: _isWorkPeriod
-                                ? [
-                                    Colors.green.withOpacity(0.8), // Verde para trabajo como las cards
-                                    Colors.orange.withOpacity(0.6),
-                                  ]
-                                : [
-                                    Colors.amber.withOpacity(0.8), // Ámbar para descanso como las cards
-                                    Colors.orange.withOpacity(0.6),
-                                  ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(30),
-                          boxShadow: [
-                            BoxShadow(
-                              color: (_isWorkPeriod ? Colors.green : Colors.amber) // Colores del menú
-                                  .withOpacity(0.4),
-                              blurRadius: 15,
-                              spreadRadius: 3,
-                              offset: const Offset(0, 8),
+                  ClipRRect(
+                        borderRadius: BorderRadius.circular(30),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 32,
+                              vertical: 10,
                             ),
-                          ],
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // Texto principal con localización
-                            Text(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  _getTimerColor().withValues(alpha: 0.5),
+                                  _getTimerColor().withValues(alpha: 0.3),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(30),
+                              border: Border.all(
+                                color: _getTimerColor().withValues(alpha: 0.6),
+                                width: 1.5,
+                              ),
+                            ),
+                            child: Text(
                               _isWorkPeriod
                                   ? languageProvider.getText('work')
                                   : languageProvider.getText('rest'),
                               style: const TextStyle(
-                                fontSize: 28,
+                                fontSize: 22,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
                                 letterSpacing: 2.0,
                               ),
                             ),
-                          ],
+                          ),
                         ),
                       )
                       .animate()
-                      .fadeIn(duration: 600.ms)
+                      .fadeIn(duration: 400.ms)
                       .scale(
-                        begin: const Offset(0.7, 0.7),
+                        begin: const Offset(0.85, 0.85),
                         end: const Offset(1.0, 1.0),
-                      )
-                      .shimmer(
-                        duration: 2000.ms,
-                        color: Colors.white.withOpacity(0.6),
                       ),
 
                 // Información específica para RUNNING - Diseño simplificado
                 if (widget.timerType == 'RUNNING' && !_isPreparation)
-                  Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 25,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _getTimerColor().withOpacity(
-                            0.1,
-                          ), // Color del tema suave
-                          borderRadius: BorderRadius.circular(25),
-                          border: Border.all(
-                            color: _getTimerColor().withOpacity(0.3),
-                            width: 1,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              _isRunningDistance
-                                  ? Icons.directions_run
-                                  : Icons.self_improvement,
-                              color: _getTimerColor(), // Color del tema
-                              size: 22,
+                  ClipRRect(
+                        borderRadius: BorderRadius.circular(25),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 25,
+                              vertical: 12,
                             ),
-                            const SizedBox(width: 8),
-                            // Texto principal con información específica de Running
-                            Text(
-                              _isRunningDistance
-                                  ? languageProvider
-                                        .getText('run_distance')
-                                        .replaceAll(
-                                          '{distance}',
-                                          _targetDistance.toString(),
-                                        )
-                                  : languageProvider.getText('running_rest'),
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: _getTimerColor(), // Color del tema
-                                letterSpacing: 1.5,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  _getTimerColor().withValues(alpha: 0.25),
+                                  _getTimerColor().withValues(alpha: 0.15),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(25),
+                              border: Border.all(
+                                color: _getTimerColor().withValues(alpha: 0.4),
+                                width: 1,
                               ),
                             ),
-                          ],
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  _isRunningDistance
+                                      ? languageProvider
+                                            .getText('run_distance')
+                                            .replaceAll(
+                                              '{distance}',
+                                              _targetDistance.toString(),
+                                            )
+                                      : languageProvider.getText('running_rest'),
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: _getTimerColor(),
+                                    letterSpacing: 1.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       )
                       .animate()
@@ -1546,7 +1646,7 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                       )
                       .shimmer(
                         duration: 2000.ms,
-                        color: Colors.white.withOpacity(0.6),
+                        color: Colors.white.withValues(alpha: 0.6),
                       ),
 
                 // Mostrar progreso de rondas completadas durante el descanso de RUNNING
@@ -1554,58 +1654,64 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                     !_isRunningDistance &&
                     _roundTimes.isNotEmpty &&
                     !_isPreparation)
-                  Container(
-                    margin: const EdgeInsets.only(top: 15),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: _getTimerColor().withOpacity(0.08),
-                      borderRadius: BorderRadius.circular(15),
-                      border: Border.all(
-                        color: _getTimerColor().withOpacity(0.2),
-                        width: 1,
-                      ),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          '${languageProvider.getText('rounds_completed').toUpperCase()}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: _getTimerColor().withOpacity(0.8),
-                            letterSpacing: 1.2,
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(15),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: Container(
+                        margin: const EdgeInsets.only(top: 15),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(15),
+                          border: Border.all(
+                            color: _getTimerColor().withValues(alpha: 0.3),
+                            width: 1,
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            for (int i = 0; i < _roundTimes.length; i++) ...[
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: _getTimerColor().withOpacity(0.15),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  '${i + 1}: ${_roundTimes[i]}s',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: _getTimerColor(),
-                                  ),
-                                ),
+                            Text(
+                              languageProvider.getText('rounds_completed').toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: _getTimerColor().withValues(alpha: 0.9),
+                                letterSpacing: 1.2,
                               ),
-                              if (i < _roundTimes.length - 1)
-                                const SizedBox(width: 6),
-                            ],
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                for (int i = 0; i < _roundTimes.length; i++) ...[
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: _getTimerColor().withValues(alpha: 0.2),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      '${i + 1}: ${_roundTimes[i]}s',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: _getTimerColor(),
+                                      ),
+                                    ),
+                                  ),
+                                  if (i < _roundTimes.length - 1)
+                                    const SizedBox(width: 6),
+                                ],
+                              ],
+                            ),
                           ],
                         ),
-                      ],
+                      ),
                     ),
                   ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.3, end: 0),
 
@@ -1613,34 +1719,47 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                     widget.timerType != 'AMRAP' &&
                     widget.timerType != 'RUNNING' &&
                     !_isPreparation)
-                  Container(
-                        margin: const EdgeInsets.only(top: 10),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _getTimerColor().withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: _getTimerColor().withOpacity(0.3),
-                            width: 1,
-                          ),
-                        ),
-                        child: Text(
-                          languageProvider
-                              .getText('round_of')
-                              .replaceAll('{current}', '$_currentRound')
-                              .replaceAll('{total}', '$_totalRounds'),
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
-                            color: _getTimerColor(),
+                  ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                          child: Container(
+                            margin: const EdgeInsets.only(top: 8),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  _getTimerColor().withValues(alpha: 0.25),
+                                  _getTimerColor().withValues(alpha: 0.15),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: _getTimerColor().withValues(alpha: 0.45),
+                                width: 1,
+                              ),
+                            ),
+                            child: Text(
+                              languageProvider
+                                  .getText('round_of')
+                                  .replaceAll('{current}', '$_currentRound')
+                                  .replaceAll('{total}', '$_totalRounds'),
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: _getTimerColor(),
+                              ),
+                            ),
                           ),
                         ),
                       )
                       .animate()
-                      .fadeIn(duration: 400.ms, delay: 200.ms)
+                      .fadeIn(duration: 400.ms, delay: 150.ms)
                       .slideY(begin: -0.2, end: 0),
 
                 const SizedBox(height: 40),
@@ -1684,51 +1803,65 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                     !_showRunningSummary)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 20),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _completeRunningDistance,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              _getTimerColor(), // Usar color del tema
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 3,
-                          shadowColor: Colors.black26,
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 16,
-                            horizontal: 20,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'COMPLETÉ ${_targetDistance}M',
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w600,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                                Text(
-                                  languageProvider.currentLanguage == 'es'
-                                      ? 'Iniciar descanso'
-                                      : 'Start rest period',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w400,
-                                    color: Colors.white.withOpacity(0.85),
-                                  ),
-                                ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(18),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                        child: Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                _getTimerColor().withValues(alpha: 0.5),
+                                _getTimerColor().withValues(alpha: 0.3),
                               ],
                             ),
-                          ],
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(
+                              color: _getTimerColor().withValues(alpha: 0.6),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            borderRadius: BorderRadius.circular(18),
+                            child: InkWell(
+                              onTap: _completeRunningDistance,
+                              borderRadius: BorderRadius.circular(18),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                  horizontal: 20,
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      'COMPLETÉ ${_targetDistance}M',
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                    Text(
+                                      languageProvider.currentLanguage == 'es'
+                                          ? 'Iniciar descanso'
+                                          : 'Start rest period',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w400,
+                                        color: Colors.white.withValues(alpha: 0.85),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -1783,7 +1916,7 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                   ),
               ],
             ),
-          ),
+          ),),
 
           // Efecto de confetti - más intenso para celebraciones de finalización
           if (_showConfetti)
@@ -1811,26 +1944,52 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
     required String label,
     bool isPrimary = false,
   }) {
+    final double size = isPrimary ? 68 : 56;
     return Column(
       children: [
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(25),
-            boxShadow: [
-              BoxShadow(
-                color: backgroundColor.withOpacity(0.3),
-                blurRadius: 15,
-                spreadRadius: 2,
-                offset: const Offset(0, 8),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(size / 2),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              width: size,
+              height: size,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    backgroundColor.withOpacity(0.45),
+                    backgroundColor.withOpacity(0.25),
+                  ],
+                ),
+                border: Border.all(
+                  color: backgroundColor.withOpacity(0.5),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: backgroundColor.withOpacity(0.25),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: FloatingActionButton(
-            onPressed: onPressed,
-            backgroundColor: backgroundColor,
-            heroTag: label,
-            elevation: 8,
-            child: Icon(icon, size: isPrimary ? 32 : 28, color: Colors.white),
+              child: Material(
+                color: Colors.transparent,
+                shape: const CircleBorder(),
+                child: InkWell(
+                  customBorder: const CircleBorder(),
+                  onTap: onPressed,
+                  child: Icon(
+                    icon,
+                    size: isPrimary ? 32 : 26,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
         const SizedBox(height: 8),
@@ -1838,7 +1997,7 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
           label,
           style: TextStyle(
             fontSize: 12,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
             color: backgroundColor,
           ),
         ),
