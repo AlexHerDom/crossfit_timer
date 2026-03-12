@@ -66,3 +66,9 @@ privacy_policy.md
 
 # Archivos de desarrollo local
 icon_env/
+
+# Claude Code settings
+.claude/
+
+# Test/scaffold projects
+test_project/

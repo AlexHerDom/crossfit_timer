@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# 🎯 Script para integrar el nuevo icono en CrossFit Timer Pro
+# 🎯 Script para integrar el nuevo icono en CrossFit Timer
 # Autor: Copilot Assistant
 # Fecha: $(date)
 
-echo "🏋️‍♂️ Integrando nuevo icono en CrossFit Timer Pro..."
+echo "🏋️‍♂️ Integrando nuevo icono en CrossFit Timer..."
 
 # Verificar que el icono existe
 if [ ! -f ~/Desktop/"Untitled image.png" ]; then
