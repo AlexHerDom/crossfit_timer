@@ -111,8 +111,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
   }
 
-  Widget _buildHistoryItem(WorkoutHistory workout) {
+  Widget _buildHistoryItem(WorkoutHistory workout, bool isDarkMode) {
     final color = _getTypeColor(workout.type);
+    final textColor = isDarkMode ? Colors.white : Colors.black87;
+    final subtitleColor = isDarkMode
+        ? Colors.white.withValues(alpha: 0.65)
+        : Colors.black.withValues(alpha: 0.7);
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: BackdropFilter(
@@ -130,24 +134,26 @@ class _HistoryScreenState extends State<HistoryScreen> {
               ],
             ),
             border: Border.all(
-              color: Colors.black.withOpacity(0.1),
+              color: isDarkMode
+                  ? Colors.white.withValues(alpha: 0.12)
+                  : Colors.black.withValues(alpha: 0.1),
               width: 1,
             ),
           ),
           child: ListTile(
             leading: CircleAvatar(
-              backgroundColor: color.withOpacity(0.15),
+              backgroundColor: color.withValues(alpha: 0.15),
               child: Icon(
                 _getTypeIcon(workout.type),
-                color: Colors.black87,
+                color: textColor,
               ),
             ),
             title: Text(
               workout.type,
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
-                color: Colors.black87,
+                color: textColor,
               ),
             ),
             subtitle: Column(
@@ -155,17 +161,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
               children: [
                 Text(
                   'Duración: ${_formatDuration(workout.duration)}',
-                  style: TextStyle(color: Colors.black.withOpacity(0.7)),
+                  style: TextStyle(color: subtitleColor),
                 ),
                 if (workout.rounds > 1)
                   Text(
                     'Rondas: ${workout.rounds}',
-                    style: TextStyle(color: Colors.black.withOpacity(0.7)),
+                    style: TextStyle(color: subtitleColor),
                   ),
                 Text(
                   _formatDate(workout.date),
                   style: TextStyle(
-                    color: Colors.black.withOpacity(0.5),
+                    color: subtitleColor.withValues(alpha: isDarkMode ? 0.5 : 0.5),
                     fontSize: 12,
                   ),
                 ),
@@ -188,14 +194,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Historial de Entrenamientos',
-          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: themeProvider.isDarkMode ? Colors.white : Colors.black87,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black87),
+        iconTheme: IconThemeData(
+          color: themeProvider.isDarkMode ? Colors.white : Colors.black87,
+        ),
         actions: [
           if (_workoutHistory.isNotEmpty)
             IconButton(
@@ -208,15 +219,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
       body: Stack(
         children: [
           Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFFE0F7FA), // Light Cyan
-                  Color(0xFFFCE4EC), // Light Pink
-                  Color(0xFFE8EAF6), // Light Indigo/Lavender
-                ],
+                colors: themeProvider.isDarkMode
+                    ? const [Color(0xFF1E2030), Color(0xFF2A2A38), Color(0xFF1E2030)]
+                    : const [Color(0xFFE0F7FA), Color(0xFFFCE4EC), Color(0xFFE8EAF6)],
               ),
             ),
           ),
@@ -249,7 +258,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           itemCount: _workoutHistory.length,
                                               itemBuilder: (context, index) {
                                                 final workout = _workoutHistory[index];
-                                                return _buildHistoryItem(workout);
+                                                return _buildHistoryItem(workout, themeProvider.isDarkMode);
                                               },                        ),
                 ),
               ],

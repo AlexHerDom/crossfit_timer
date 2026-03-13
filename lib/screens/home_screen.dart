@@ -55,7 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        foregroundColor: Colors.black87,
+        foregroundColor: themeProvider.isDarkMode ? Colors.white : Colors.black87,
         actions: [
           IconButton(
             onPressed: () => Navigator.push(
@@ -98,15 +98,13 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Stack(
         children: [
           Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFFE0F7FA), // Light Cyan
-                  Color(0xFFFCE4EC), // Light Pink
-                  Color(0xFFE8EAF6), // Light Indigo/Lavender
-                ],
+                colors: themeProvider.isDarkMode
+                    ? const [Color(0xFF1E2030), Color(0xFF2A2A38), Color(0xFF1E2030)]
+                    : const [Color(0xFFE0F7FA), Color(0xFFFCE4EC), Color(0xFFE8EAF6)],
               ),
             ),
           ),
@@ -122,10 +120,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           children: [
                             Text(
                               languageProvider.getText('workout_timer'),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 28,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.black87,
+                                color: themeProvider.isDarkMode ? Colors.white : Colors.black87,
                                 letterSpacing: 1.5,
                               ),
                               textAlign: TextAlign.center,
@@ -136,7 +134,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w400,
-                                color: Colors.black.withOpacity(0.7),
+                                color: themeProvider.isDarkMode
+                                    ? Colors.white.withValues(alpha: 0.6)
+                                    : Colors.black.withValues(alpha: 0.7),
                                 fontStyle: FontStyle.italic,
                               ),
                             ),
@@ -156,6 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       icon: Icons.all_inclusive,
                       color: Colors.orange,
                       onTap: () => _navigateToTimer(context, 'AMRAP'),
+                      isDarkMode: themeProvider.isDarkMode,
                     ).animate().fadeIn(duration: 400.ms, delay: 100.ms).slideY(begin: 0.15, end: 0),
 
                     const SizedBox(height: 16),
@@ -168,6 +169,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       icon: Icons.access_time,
                       color: Colors.blue,
                       onTap: () => _navigateToTimer(context, 'EMOM'),
+                      isDarkMode: themeProvider.isDarkMode,
                     ).animate().fadeIn(duration: 400.ms, delay: 175.ms).slideY(begin: 0.15, end: 0),
 
                     const SizedBox(height: 16),
@@ -180,6 +182,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       icon: Icons.flash_on,
                       color: Colors.red,
                       onTap: () => _navigateToTimer(context, 'TABATA'),
+                      isDarkMode: themeProvider.isDarkMode,
                     ).animate().fadeIn(duration: 400.ms, delay: 250.ms).slideY(begin: 0.15, end: 0),
 
                     const SizedBox(height: 16),
@@ -192,6 +195,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       icon: Icons.timer,
                       color: Colors.green,
                       onTap: () => _navigateToTimer(context, 'COUNTDOWN'),
+                      isDarkMode: themeProvider.isDarkMode,
                     ).animate().fadeIn(duration: 400.ms, delay: 325.ms).slideY(begin: 0.15, end: 0),
 
                     const SizedBox(height: 16),
@@ -204,6 +208,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       icon: Icons.directions_run,
                       color: Colors.purple,
                       onTap: () => _navigateToTimer(context, 'RUNNING'),
+                      isDarkMode: themeProvider.isDarkMode,
                     ).animate().fadeIn(duration: 400.ms, delay: 400.ms).slideY(begin: 0.15, end: 0),
 
                     const SizedBox(height: 40),
@@ -225,11 +230,20 @@ class _HomeScreenState extends State<HomeScreen> {
     required IconData icon,
     required Color color,
     required VoidCallback onTap,
+    required bool isDarkMode,
   }) {
+    final textColor = isDarkMode ? Colors.white : Colors.black87;
+    final subtitleColor = isDarkMode
+        ? Colors.white.withValues(alpha: 0.65)
+        : Colors.black.withValues(alpha: 0.7);
+    final borderColor = isDarkMode
+        ? Colors.white.withValues(alpha: 0.12)
+        : Colors.black.withValues(alpha: 0.1);
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(24),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8), // Increased blur
+        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
         child: Container(
           height: 88,
           decoration: BoxDecoration(
@@ -238,14 +252,11 @@ class _HomeScreenState extends State<HomeScreen> {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                color.withOpacity(0.3), // Slightly reduced opacity
-                color.withOpacity(0.2), // Slightly reduced opacity
+                color.withValues(alpha: 0.3),
+                color.withValues(alpha: 0.2),
               ],
             ),
-            border: Border.all(
-              color: Colors.black.withOpacity(0.1), // Darker border
-              width: 1,
-            ),
+            border: Border.all(color: borderColor, width: 1),
           ),
           child: Material(
             color: Colors.transparent,
@@ -253,14 +264,14 @@ class _HomeScreenState extends State<HomeScreen> {
             child: InkWell(
               onTap: onTap,
               borderRadius: BorderRadius.circular(24),
-              splashColor: color.withOpacity(0.1),
-              highlightColor: color.withOpacity(0.05),
+              splashColor: color.withValues(alpha: 0.1),
+              highlightColor: color.withValues(alpha: 0.05),
               child: Row(
                 children: [
                   // Icono izquierdo
                   SizedBox(
                     width: 72,
-                    child: Icon(icon, size: 34, color: Colors.black87),
+                    child: Icon(icon, size: 34, color: textColor),
                   ),
                   // Texto
                   Expanded(
@@ -274,10 +285,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Text(
                             title,
                             softWrap: false,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: Colors.black87,
+                              color: textColor,
                               letterSpacing: 0.3,
                             ),
                           ),
@@ -289,7 +300,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontSize: 13,
-                            color: Colors.black.withOpacity(0.7),
+                            color: subtitleColor,
                             fontWeight: FontWeight.w400,
                           ),
                         ),
@@ -300,7 +311,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   IconButton(
                     onPressed: () => _openConfigScreen(context, title),
                     icon: const Icon(Icons.settings_outlined, size: 22),
-                    color: Colors.black.withOpacity(0.75),
+                    color: subtitleColor,
                     splashRadius: 22,
                     tooltip: 'Configurar',
                   ),
@@ -309,7 +320,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: const EdgeInsets.only(right: 14),
                     child: Icon(
                       Icons.chevron_right_rounded,
-                      color: Colors.black.withOpacity(0.8),
+                      color: textColor,
                       size: 28,
                     ),
                   ),

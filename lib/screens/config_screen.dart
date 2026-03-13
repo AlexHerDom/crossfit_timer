@@ -196,25 +196,28 @@ class _ConfigScreenState extends State<ConfigScreen> {
       appBar: AppBar(
         title: Text(
           '${languageProvider.getText('configure')} ${widget.timerType}',
-          style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: themeProvider.isDarkMode ? Colors.white : Colors.black87,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black87),
+        iconTheme: IconThemeData(
+          color: themeProvider.isDarkMode ? Colors.white : Colors.black87,
+        ),
       ),
       body: Stack(
         children: [
           Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFFE0F7FA), // Light Cyan
-                  Color(0xFFFCE4EC), // Light Pink
-                  Color(0xFFE8EAF6), // Light Indigo/Lavender
-                ],
+                colors: themeProvider.isDarkMode
+                    ? const [Color(0xFF1E2030), Color(0xFF2A2A38), Color(0xFF1E2030)]
+                    : const [Color(0xFFE0F7FA), Color(0xFFFCE4EC), Color(0xFFE8EAF6)],
               ),
             ),
           ),

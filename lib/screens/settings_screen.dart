@@ -19,10 +19,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _keepScreenOn = true;
   double _beepVolume = 1.0;
   int _preparationTime = 10;
-  String _selectedTheme = 'Orange';
   String _selectedLanguage = 'es'; // Default to Spanish
-
-  final List<String> _themes = ['Orange', 'Blue', 'Red', 'Green', 'Purple'];
 
   @override
   void initState() {
@@ -44,7 +41,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ? 10
           : savedPrepTime;
 
-      _selectedTheme = prefs.getString('selected_theme') ?? 'Orange';
       // El idioma ahora se maneja a través del LanguageProvider
     });
   }
@@ -56,24 +52,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await prefs.setBool('keep_screen_on', _keepScreenOn);
     await prefs.setDouble('beep_volume', _beepVolume);
     await prefs.setInt('preparation_time', _preparationTime);
-    await prefs.setString('selected_theme', _selectedTheme);
     await prefs.setString('language_code', _selectedLanguage);
   }
 
-  Color _getThemeColor() {
-    switch (_selectedTheme) {
-      case 'Blue':
-        return Colors.blue;
-      case 'Red':
-        return Colors.red;
-      case 'Green':
-        return Colors.green;
-      case 'Purple':
-        return Colors.purple;
-      default:
-        return Colors.orange;
-    }
-  }
+  Color _getThemeColor() => Colors.orange;
 
   @override
   Widget build(BuildContext context) {
@@ -85,12 +67,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
       appBar: AppBar(
         title: Text(
           languageProvider.getText('settings'),
-          style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: themeProvider.isDarkMode ? Colors.white : Colors.black87,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black87),
+        iconTheme: IconThemeData(
+          color: themeProvider.isDarkMode ? Colors.white : Colors.black87,
+        ),
         actions: [
           IconButton(
             onPressed: () {
@@ -112,15 +99,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: Stack(
         children: [
           Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFFE0F7FA), // Light Cyan
-                  Color(0xFFFCE4EC), // Light Pink
-                  Color(0xFFE8EAF6), // Light Indigo/Lavender
-                ],
+                colors: themeProvider.isDarkMode
+                    ? const [Color(0xFF1E2030), Color(0xFF2A2A38), Color(0xFF1E2030)]
+                    : const [Color(0xFFE0F7FA), Color(0xFFFCE4EC), Color(0xFFE8EAF6)],
               ),
             ),
           ),
@@ -128,6 +113,58 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: ListView(
               padding: const EdgeInsets.all(16.0),
         children: [
+          // Sección de Apariencia (primero: más visual y frecuente)
+          _buildSectionHeader(languageProvider.getText('appearance_section')),
+          _buildGlassCard(
+            child: ListTile(
+              leading: Icon(
+                themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode,
+                color: _getThemeColor(),
+              ),
+              title: Text(
+                themeProvider.isDarkMode ? 'Modo Oscuro' : 'Modo Claro',
+                style: TextStyle(
+                  color: themeProvider.isDarkMode ? Colors.white : Colors.black87,
+                ),
+              ),
+              subtitle: Text(
+                themeProvider.isDarkMode ? 'Dark mode activado' : 'Light mode activado',
+                style: TextStyle(
+                  color: themeProvider.isDarkMode
+                      ? Colors.white.withValues(alpha: 0.55)
+                      : Colors.grey[600],
+                ),
+              ),
+              trailing: Switch(
+                value: themeProvider.isDarkMode,
+                onChanged: (_) => themeProvider.toggleDarkMode(),
+                activeColor: _getThemeColor(),
+                thumbIcon: WidgetStateProperty.resolveWith<Icon?>((states) {
+                  if (states.contains(WidgetState.selected)) {
+                    return const Icon(Icons.dark_mode, size: 14);
+                  }
+                  return const Icon(Icons.light_mode, size: 14);
+                }),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Sección de Entrenamiento
+          _buildSectionHeader(languageProvider.getText('training_section')),
+          _buildSliderTile(
+            languageProvider.getText('preparation_time_title'),
+            languageProvider.getText('preparation_time_desc'),
+            _preparationTime.toDouble(),
+            5.0,
+            30.0,
+            (value) => setState(() => _preparationTime = value.round()),
+            Icons.timer,
+            suffix: ' ${languageProvider.getText('sec_suffix')}',
+          ),
+
+          const SizedBox(height: 20),
+
           // Sección de Audio
           _buildSectionHeader(languageProvider.getText('audio_section')),
           _buildSwitchTile(
@@ -163,27 +200,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             (value) => setState(() => _keepScreenOn = value),
             Icons.screen_lock_portrait,
           ),
-
-          const SizedBox(height: 20),
-
-          // Sección de Entrenamiento
-          _buildSectionHeader(languageProvider.getText('training_section')),
-          _buildSliderTile(
-            languageProvider.getText('preparation_time_title'),
-            languageProvider.getText('preparation_time_desc'),
-            _preparationTime.toDouble(),
-            5.0,
-            30.0,
-            (value) => setState(() => _preparationTime = value.round()),
-            Icons.timer,
-            suffix: ' ${languageProvider.getText('sec_suffix')}',
-          ),
-
-          const SizedBox(height: 20),
-
-          // Sección de Tema
-          _buildSectionHeader(languageProvider.getText('appearance_section')),
-          _buildThemeSelector(themeProvider),
 
           const SizedBox(height: 20),
 
@@ -245,11 +261,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
     ValueChanged<bool> onChanged,
     IconData icon,
   ) {
+    final isDark = Provider.of<ThemeProvider>(context, listen: false).isDarkMode;
     return _buildGlassCard(
       child: ListTile(
         leading: Icon(icon, color: _getThemeColor()),
-        title: Text(title),
-        subtitle: Text(subtitle),
+        title: Text(
+          title,
+          style: TextStyle(
+            color: isDark ? Colors.white : Colors.black87,
+          ),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: TextStyle(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.55)
+                : Colors.grey[600],
+          ),
+        ),
         trailing: Switch(
           value: value,
           onChanged: onChanged,
@@ -269,6 +298,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     IconData icon, {
     String suffix = '',
   }) {
+    final isDark = Provider.of<ThemeProvider>(context, listen: false).isDarkMode;
     return _buildGlassCard(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -285,14 +315,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     children: [
                       Text(
                         title,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
+                          color: isDark ? Colors.white : Colors.black87,
                         ),
                       ),
                       Text(
                         subtitle,
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.55)
+                              : Colors.grey[600],
+                        ),
                       ),
                     ],
                   ),
@@ -324,6 +360,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   // 🔊 WIDGET ESPECIAL PARA CONTROL DE VOLUMEN CON PRUEBA
   Widget _buildVolumeControlTile(LanguageProvider languageProvider) {
+    final isDark = Provider.of<ThemeProvider>(context, listen: false).isDarkMode;
     return _buildGlassCard(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -341,14 +378,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     children: [
                       Text(
                         languageProvider.getText('beep_volume_title'),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
+                          color: isDark ? Colors.white : Colors.black87,
                         ),
                       ),
                       Text(
                         'Ajusta el volumen para entrenamientos al aire libre',
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.55)
+                              : Colors.grey[600],
+                        ),
                       ),
                     ],
                   ),
@@ -377,7 +420,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             // SLIDER DE VOLUMEN
             Row(
               children: [
-                Icon(Icons.volume_down, color: Colors.grey[600], size: 20),
+                Icon(Icons.volume_down, color: isDark ? Colors.white54 : Colors.grey[600], size: 20),
                 Expanded(
                   child: Slider(
                     value: _beepVolume,
@@ -495,87 +538,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Widget _buildThemeSelector(ThemeProvider themeProvider) {
-    final languageProvider = Provider.of<LanguageProvider>(context);
-    return _buildGlassCard(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.palette, color: _getThemeColor()),
-                const SizedBox(width: 12),
-                Text(
-                  languageProvider.getText('color_theme'),
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 12,
-              children: _themes.map((theme) {
-                Color themeColor = _getThemeColorByName(theme);
-                bool isSelected = theme == _selectedTheme;
-
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _selectedTheme = theme;
-                    });
-                    themeProvider.setTheme(theme);
-                  },
-                  child: Container(
-                    width: 50,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      color: themeColor,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: isSelected ? Colors.black : Colors.grey[300]!,
-                        width: isSelected ? 3 : 1,
-                      ),
-                      boxShadow: isSelected
-                          ? [
-                              BoxShadow(
-                                color: themeColor.withOpacity(0.4),
-                                blurRadius: 8,
-                                spreadRadius: 2,
-                              ),
-                            ]
-                          : null,
-                    ),
-                    child: isSelected
-                        ? const Icon(Icons.check, color: Colors.white, size: 24)
-                        : null,
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Color _getThemeColorByName(String themeName) {
-    switch (themeName) {
-      case 'Blue':
-        return Colors.blue;
-      case 'Red':
-        return Colors.red;
-      case 'Green':
-        return Colors.green;
-      case 'Purple':
-        return Colors.purple;
-      default:
-        return Colors.orange;
-    }
-  }
-
   Widget _buildGlassCard({required Widget child}) {
+    final isDark = Provider.of<ThemeProvider>(context, listen: false).isDarkMode;
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: BackdropFilter(
@@ -584,9 +548,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
           margin: const EdgeInsets.only(bottom: 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            color: Colors.white.withOpacity(0.5),
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.07)
+                : Colors.white.withValues(alpha: 0.5),
             border: Border.all(
-              color: Colors.white.withOpacity(0.2),
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.12)
+                  : Colors.white.withValues(alpha: 0.2),
               width: 1,
             ),
           ),
@@ -597,6 +565,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildLanguageSelector() {
+    final isDark = Provider.of<ThemeProvider>(context, listen: false).isDarkMode;
     return Consumer<LanguageProvider>(
       builder: (context, languageProvider, child) {
         return _buildGlassCard(
@@ -611,7 +580,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const SizedBox(width: 12),
                     Text(
                       languageProvider.getText('language_section'),
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
                     ),
                   ],
                 ),
@@ -629,8 +602,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                           borderRadius: BorderRadius.circular(8),
                           color: languageProvider.currentLanguage == 'es'
-                              ? _getThemeColor().withOpacity(0.1)
-                              : Colors.black.withOpacity(0.05),
+                              ? _getThemeColor().withValues(alpha: 0.1)
+                              : (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05)),
                         ),
                         child: InkWell(
                           onTap: () {
@@ -650,7 +623,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     color:
                                         languageProvider.currentLanguage == 'es'
                                         ? _getThemeColor()
-                                        : Colors.grey[700],
+                                        : (isDark ? Colors.white.withValues(alpha: 0.6) : Colors.grey[700]),
                                   ),
                                 ),
                               ],
@@ -671,8 +644,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                           borderRadius: BorderRadius.circular(8),
                           color: languageProvider.currentLanguage == 'en'
-                              ? _getThemeColor().withOpacity(0.1)
-                              : Colors.black.withOpacity(0.05),
+                              ? _getThemeColor().withValues(alpha: 0.1)
+                              : (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05)),
                         ),
                         child: InkWell(
                           onTap: () {
@@ -692,7 +665,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     color:
                                         languageProvider.currentLanguage == 'en'
                                         ? _getThemeColor()
-                                        : Colors.grey[700],
+                                        : (isDark ? Colors.white.withValues(alpha: 0.6) : Colors.grey[700]),
                                   ),
                                 ),
                               ],
@@ -735,7 +708,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   _keepScreenOn = true;
                   _beepVolume = 1.0;
                   _preparationTime = 10;
-                  _selectedTheme = 'Orange';
                   _selectedLanguage = 'es';
                 });
 
@@ -771,6 +743,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildInfoSection() {
     final languageProvider = Provider.of<LanguageProvider>(context);
+    final isDark = Provider.of<ThemeProvider>(context, listen: false).isDarkMode;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subtitleColor = isDark ? Colors.white.withValues(alpha: 0.55) : Colors.grey;
     return _buildGlassCard(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -783,17 +758,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const SizedBox(width: 12),
                 Text(
                   languageProvider.getText('app_info'),
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: textColor),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            Text(languageProvider.getText('version')),
-            Text(languageProvider.getText('developer')),
+            Text(languageProvider.getText('version'), style: TextStyle(color: textColor)),
+            Text(languageProvider.getText('developer'), style: TextStyle(color: textColor)),
             const SizedBox(height: 8),
             Text(
               languageProvider.getText('app_description'),
-              style: TextStyle(fontSize: 14, color: Colors.grey),
+              style: TextStyle(fontSize: 14, color: subtitleColor),
             ),
           ],
         ),

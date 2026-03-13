@@ -882,6 +882,7 @@ class _TimerScreenState extends State<TimerScreen> {
           context,
           listen: false,
         );
+        final dialogThemeProvider = Provider.of<ThemeProvider>(context, listen: false);
         return Dialog(
           backgroundColor: Colors.transparent,
           insetPadding: const EdgeInsets.symmetric(horizontal: 24),
@@ -891,14 +892,12 @@ class _TimerScreenState extends State<TimerScreen> {
               filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
               child: Container(
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
+                  gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [
-                      Color(0xFFE0F7FA),
-                      Color(0xFFFCE4EC),
-                      Color(0xFFE8EAF6),
-                    ],
+                    colors: dialogThemeProvider.isDarkMode
+                        ? const [Color(0xFF1E2030), Color(0xFF2A2A38), Color(0xFF1E2030)]
+                        : const [Color(0xFFE0F7FA), Color(0xFFFCE4EC), Color(0xFFE8EAF6)],
                   ),
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
@@ -1419,7 +1418,9 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        iconTheme: const IconThemeData(color: Colors.black87), // For back button
+        iconTheme: IconThemeData(
+          color: themeProvider.isDarkMode ? Colors.white : Colors.black87,
+        ),
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -1430,10 +1431,10 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                 children: [
                   Text(
                     widget.timerType,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 17,
-                      color: Colors.black87,
+                      color: themeProvider.isDarkMode ? Colors.white : Colors.black87,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -1442,7 +1443,9 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                     style: TextStyle(
                       fontWeight: FontWeight.w400,
                       fontSize: 11,
-                      color: Colors.black.withOpacity(0.7),
+                      color: themeProvider.isDarkMode
+                          ? Colors.white.withValues(alpha: 0.65)
+                          : Colors.black.withValues(alpha: 0.7),
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -1454,7 +1457,7 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        foregroundColor: Colors.black87,
+        foregroundColor: themeProvider.isDarkMode ? Colors.white : Colors.black87,
         actions: [
           IconButton(
             onPressed: _toggleFullScreen,
@@ -1471,15 +1474,13 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
         children: [
           // Fondo con degradado
           Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFFE0F7FA), // Light Cyan
-                  Color(0xFFFCE4EC), // Light Pink
-                  Color(0xFFE8EAF6), // Light Indigo/Lavender
-                ],
+                colors: themeProvider.isDarkMode
+                    ? const [Color(0xFF1E2030), Color(0xFF2A2A38), Color(0xFF1E2030)]
+                    : const [Color(0xFFE0F7FA), Color(0xFFFCE4EC), Color(0xFFE8EAF6)],
               ),
             ),
           ),
@@ -1522,7 +1523,9 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
-                                      color: Colors.grey[700],
+                                      color: themeProvider.isDarkMode
+                                          ? Colors.white.withValues(alpha: 0.9)
+                                          : Colors.grey[700],
                                     ),
                                     textAlign: TextAlign.center,
                                     maxLines: 2,

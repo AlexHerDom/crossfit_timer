@@ -5,10 +5,12 @@ class ThemeProvider with ChangeNotifier {
   Color _primaryColor = Colors.orange;
   String _selectedTheme = 'Orange';
   Locale _currentLocale = const Locale('es', 'ES'); // Default to Spanish
+  bool _isDarkMode = false; // ignore: prefer_final_fields
 
   Color get primaryColor => _primaryColor;
   String get selectedTheme => _selectedTheme;
   Locale get currentLocale => _currentLocale;
+  bool get isDarkMode => _isDarkMode;
 
   static const Map<String, Color> themes = {
     'Orange': Colors.orange,
@@ -27,6 +29,14 @@ class ThemeProvider with ChangeNotifier {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     _selectedTheme = prefs.getString('selected_theme') ?? 'Orange';
     _primaryColor = themes[_selectedTheme] ?? Colors.orange;
+    _isDarkMode = prefs.getBool('dark_mode') ?? false;
+    notifyListeners();
+  }
+
+  Future<void> toggleDarkMode() async {
+    _isDarkMode = !_isDarkMode;
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('dark_mode', _isDarkMode);
     notifyListeners();
   }
 
