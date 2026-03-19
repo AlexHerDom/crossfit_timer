@@ -3,12 +3,14 @@ import 'dart:ui';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'timer_screen.dart';
 import 'config_screen.dart';
 import 'history_screen.dart';
 import 'settings_screen.dart';
 import '../theme_provider.dart';
 import '../language_provider.dart';
+import '../services/ad_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -95,7 +97,11 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: Stack(
+      body: Consumer<AdService>(
+        builder: (context, adService, _) => Column(
+          children: [
+            Expanded(
+              child: Stack(
         children: [
           Container(
             decoration: BoxDecoration(
@@ -218,6 +224,16 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ],
+      ),
+            ),
+            // Banner de anuncio (solo si no ha pagado para quitarlos)
+            if (!adService.adsRemoved && adService.isBannerAdReady)
+              SizedBox(
+                height: adService.bannerAd!.size.height.toDouble(),
+                child: AdWidget(ad: adService.bannerAd!),
+              ),
+          ],
+        ),
       ),
     );
   }

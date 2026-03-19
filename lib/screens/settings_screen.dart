@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import '../theme_provider.dart';
 import '../language_provider.dart';
+import '../services/ad_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -205,6 +206,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // Sección de Idioma
           _buildLanguageSelector(),
+
+          const SizedBox(height: 20),
+
+          // Sección Quitar Anuncios
+          _buildSectionHeader('Soporte'),
+          _buildRemoveAdsSection(),
 
           const SizedBox(height: 30),
 
@@ -736,6 +743,102 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Text(languageProvider.getText('restore')),
             ),
           ],
+        );
+      },
+    );
+  }
+
+  Widget _buildRemoveAdsSection() {
+    final isDark = Provider.of<ThemeProvider>(context, listen: false).isDarkMode;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subtitleColor = isDark ? Colors.white.withValues(alpha: 0.55) : Colors.grey[600];
+
+    return Consumer<AdService>(
+      builder: (context, adService, _) {
+        if (adService.adsRemoved) {
+          return _buildGlassCard(
+            child: ListTile(
+              leading: const Icon(Icons.star, color: Colors.amber),
+              title: Text('Sin anuncios activado', style: TextStyle(color: textColor)),
+              subtitle: Text('Gracias por tu apoyo!', style: TextStyle(color: subtitleColor)),
+              trailing: const Icon(Icons.check_circle, color: Colors.green),
+            ),
+          );
+        }
+
+        return _buildGlassCard(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.block, color: _getThemeColor()),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Quitar anuncios',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: textColor,
+                            ),
+                          ),
+                          Text(
+                            'Pago unico de \$2.00 — apoya el desarrollo',
+                            style: TextStyle(fontSize: 13, color: subtitleColor),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: adService.isPurchasing
+                            ? null
+                            : () async {
+                                final ok = await adService.purchaseRemoveAds();
+                                if (!ok && context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('No se pudo completar la compra. Intenta de nuevo.'),
+                                    ),
+                                  );
+                                }
+                              },
+                        icon: adService.isPurchasing
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              )
+                            : const Icon(Icons.block),
+                        label: Text(adService.isPurchasing ? 'Procesando...' : 'Quitar anuncios — \$2'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _getThemeColor(),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    TextButton(
+                      onPressed: () => adService.restorePurchases(),
+                      child: Text('Restaurar', style: TextStyle(color: subtitleColor)),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         );
       },
     );

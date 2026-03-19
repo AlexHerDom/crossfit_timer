@@ -14,6 +14,8 @@ import '../widgets/confetti_effect.dart';
 import '../theme_provider.dart';
 import '../language_provider.dart';
 import '../services/notification_service.dart';
+import '../services/ad_service.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'dart:async';
 
 class TimerScreen extends StatefulWidget {
@@ -1470,7 +1472,11 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
           ),
         ],
       ),
-      body: Stack(
+      body: Consumer<AdService>(
+        builder: (context, adService, _) => Stack(
+          children: [
+            Positioned.fill(
+              child: Stack(
         children: [
           // Fondo con degradado
           Container(
@@ -1935,6 +1941,26 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
               },
             ),
         ],
+      ),
+            ),
+            // Banner flotante en la parte inferior, solo al pausar
+            if (!adService.adsRemoved && adService.isTimerBannerAdReady)
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: AnimatedSlide(
+                  offset: _isPaused ? Offset.zero : const Offset(0, 1),
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  child: SizedBox(
+                    height: adService.timerBannerAd!.size.height.toDouble(),
+                    child: AdWidget(ad: adService.timerBannerAd!),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
