@@ -249,6 +249,18 @@ class LanguageProvider extends ChangeNotifier {
         'round_details': 'Detalle por rondas',
         'performance_chart': 'Gráfica de Rendimiento',
         'completed_rounds_status': 'Rondas Completadas',
+
+        // Stats Screen
+        'stats_title': 'Estadísticas',
+        'stats_total_workouts': 'Entrenamientos',
+        'stats_total_time': 'Tiempo total',
+        'stats_current_streak': 'Racha actual',
+        'stats_best_streak': 'Mejor racha',
+        'stats_weekly': 'Últimos 7 días',
+        'stats_by_type': 'Por tipo de timer',
+        'stats_empty': 'Sin estadísticas aún',
+        'stats_empty_hint': 'Completa entrenamientos para ver tu progreso',
+        'stats': 'Estadísticas',
       },
       'en': {
         // TTS y Audio
@@ -438,6 +450,18 @@ class LanguageProvider extends ChangeNotifier {
         'round_details': 'Round details',
         'performance_chart': 'Performance Chart',
         'completed_rounds_status': 'Completed Rounds',
+
+        // Stats Screen
+        'stats_title': 'Statistics',
+        'stats_total_workouts': 'Workouts',
+        'stats_total_time': 'Total time',
+        'stats_current_streak': 'Current streak',
+        'stats_best_streak': 'Best streak',
+        'stats_weekly': 'Last 7 days',
+        'stats_by_type': 'By timer type',
+        'stats_empty': 'No stats yet',
+        'stats_empty_hint': 'Complete workouts to see your progress',
+        'stats': 'Statistics',
       },
     };
 

@@ -7,6 +7,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'timer_screen.dart';
 import 'config_screen.dart';
 import 'history_screen.dart';
+import 'stats_screen.dart';
 import 'settings_screen.dart';
 import '../theme_provider.dart';
 import '../language_provider.dart';
@@ -66,6 +67,14 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             icon: const Icon(Icons.history),
             tooltip: languageProvider.getText('history'),
+          ),
+          IconButton(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const StatsScreen()),
+            ),
+            icon: const Icon(Icons.insert_chart),
+            tooltip: languageProvider.getText('stats'),
           ),
           IconButton(
             onPressed: () => Navigator.push(
