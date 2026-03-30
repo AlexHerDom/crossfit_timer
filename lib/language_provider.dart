@@ -261,6 +261,10 @@ class LanguageProvider extends ChangeNotifier {
         'stats_empty': 'Sin estadísticas aún',
         'stats_empty_hint': 'Completa entrenamientos para ver tu progreso',
         'stats': 'Estadísticas',
+        'stats_all': 'Todo',
+        'stats_monthly': 'Últimos 30 días',
+        'stats_quarterly': 'Últimos 3 meses',
+        'stats_all_time': 'Todo el historial',
       },
       'en': {
         // TTS y Audio
@@ -462,6 +466,10 @@ class LanguageProvider extends ChangeNotifier {
         'stats_empty': 'No stats yet',
         'stats_empty_hint': 'Complete workouts to see your progress',
         'stats': 'Statistics',
+        'stats_all': 'All',
+        'stats_monthly': 'Last 30 days',
+        'stats_quarterly': 'Last 3 months',
+        'stats_all_time': 'All time',
       },
     };
 

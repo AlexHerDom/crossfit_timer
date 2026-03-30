@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme_provider.dart';
 import '../language_provider.dart';
@@ -18,6 +19,7 @@ class StatsScreen extends StatefulWidget {
 class _StatsScreenState extends State<StatsScreen> {
   List<WorkoutHistory> _workouts = [];
   bool _isLoading = true;
+  int _selectedDays = 7; // 7, 30, 90, 0 = all
 
   @override
   void initState() {
@@ -40,20 +42,27 @@ class _StatsScreenState extends State<StatsScreen> {
           date: DateTime.parse(parts[3]),
         );
       }).toList();
+
       _workouts.sort((a, b) => b.date.compareTo(a.date));
       _isLoading = false;
     });
   }
 
-  int get _totalWorkouts => _workouts.length;
+  List<WorkoutHistory> get _filteredWorkouts {
+    if (_selectedDays == 0) return _workouts;
+    final cutoff = DateTime.now().subtract(Duration(days: _selectedDays));
+    return _workouts.where((w) => w.date.isAfter(cutoff)).toList();
+  }
+
+  int get _totalWorkouts => _filteredWorkouts.length;
 
   int get _totalSeconds =>
-      _workouts.fold(0, (sum, w) => sum + w.duration);
+      _filteredWorkouts.fold(0, (sum, w) => sum + w.duration);
 
   int get _currentStreak {
-    if (_workouts.isEmpty) return 0;
+    if (_filteredWorkouts.isEmpty) return 0;
 
-    Set<String> workoutDays = _workouts
+    Set<String> workoutDays = _filteredWorkouts
         .map((w) =>
             '${w.date.year}-${w.date.month}-${w.date.day}')
         .toSet();
@@ -88,9 +97,9 @@ class _StatsScreenState extends State<StatsScreen> {
   }
 
   int get _bestStreak {
-    if (_workouts.isEmpty) return 0;
+    if (_filteredWorkouts.isEmpty) return 0;
 
-    Set<DateTime> workoutDays = _workouts
+    Set<DateTime> workoutDays = _filteredWorkouts
         .map((w) => DateTime(w.date.year, w.date.month, w.date.day))
         .toSet();
 
@@ -112,29 +121,51 @@ class _StatsScreenState extends State<StatsScreen> {
 
   Map<String, int> get _workoutsByType {
     Map<String, int> counts = {};
-    for (var w in _workouts) {
+    for (var w in _filteredWorkouts) {
       counts[w.type] = (counts[w.type] ?? 0) + 1;
     }
     return counts;
   }
 
-  /// Returns workout counts for the last 7 days, ordered Mon-Sun.
-  List<MapEntry<DateTime, int>> get _last7Days {
+  /// Returns workout counts per day for the selected period.
+  /// For 7d: daily bars. For 30d: daily bars. For 90d/all: weekly bars.
+  List<MapEntry<DateTime, int>> get _chartData {
     DateTime now = DateTime.now();
     DateTime today = DateTime(now.year, now.month, now.day);
 
-    List<MapEntry<DateTime, int>> days = [];
-    for (int i = 6; i >= 0; i--) {
-      DateTime day = today.subtract(Duration(days: i));
-      int count = _workouts
-          .where((w) =>
-              w.date.year == day.year &&
-              w.date.month == day.month &&
-              w.date.day == day.day)
-          .length;
-      days.add(MapEntry(day, count));
+    int numDays = _selectedDays == 0 ? 90 : _selectedDays;
+
+    if (numDays <= 30) {
+      // Daily bars
+      List<MapEntry<DateTime, int>> days = [];
+      for (int i = numDays - 1; i >= 0; i--) {
+        DateTime day = today.subtract(Duration(days: i));
+        int count = _filteredWorkouts
+            .where((w) =>
+                w.date.year == day.year &&
+                w.date.month == day.month &&
+                w.date.day == day.day)
+            .length;
+        days.add(MapEntry(day, count));
+      }
+      return days;
+    } else {
+      // Weekly bars
+      int numWeeks = (numDays / 7).ceil();
+      List<MapEntry<DateTime, int>> weeks = [];
+      for (int i = numWeeks - 1; i >= 0; i--) {
+        DateTime weekStart = today.subtract(Duration(days: i * 7 + 6));
+        DateTime weekEnd = today.subtract(Duration(days: i * 7));
+        int count = _filteredWorkouts
+            .where((w) {
+              DateTime wDay = DateTime(w.date.year, w.date.month, w.date.day);
+              return !wDay.isBefore(weekStart) && !wDay.isAfter(weekEnd);
+            })
+            .length;
+        weeks.add(MapEntry(weekStart, count));
+      }
+      return weeks;
     }
-    return days;
   }
 
   String _formatTotalTime(int totalSeconds, LanguageProvider lang) {
@@ -153,6 +184,38 @@ class _StatsScreenState extends State<StatsScreen> {
     return isSpanish
         ? esLabels[weekday - 1]
         : enLabels[weekday - 1];
+  }
+
+  void _shareStats(LanguageProvider lang) {
+    final typeData = _workoutsByType;
+    final sorted = typeData.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    bool isSpanish = lang.currentLanguage == 'es';
+
+    StringBuffer text = StringBuffer();
+    text.writeln(isSpanish
+        ? '📊 Mis estadísticas en CrossFit Timer Pro'
+        : '📊 My stats on CrossFit Timer Pro');
+    text.writeln('');
+    text.writeln('💪 $_totalWorkouts ${lang.getText('stats_total_workouts').toLowerCase()}');
+    text.writeln('⏱️ ${_formatTotalTime(_totalSeconds, lang)} ${lang.getText('stats_total_time').toLowerCase()}');
+    text.writeln('🔥 $_currentStreak ${isSpanish ? 'días de racha' : 'day streak'}');
+    text.writeln('🏆 ${isSpanish ? 'Mejor racha' : 'Best streak'}: $_bestStreak ${isSpanish ? 'días' : 'days'}');
+
+    if (sorted.isNotEmpty) {
+      text.writeln('');
+      text.writeln('📈 ${lang.getText('stats_by_type')}:');
+      for (var entry in sorted) {
+        double pct = (entry.value / _totalWorkouts) * 100;
+        text.writeln('  ${entry.key}: ${entry.value} (${pct.toStringAsFixed(0)}%)');
+      }
+    }
+
+    text.writeln('');
+    text.writeln('#CrossFit #WOD #CrossFitTimerPro');
+
+    Share.share(text.toString());
   }
 
   Color _getTypeColor(String type) {
@@ -210,6 +273,14 @@ class _StatsScreenState extends State<StatsScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: IconThemeData(color: textColor),
+        actions: [
+          if (_workouts.isNotEmpty)
+            IconButton(
+              onPressed: () => _shareStats(languageProvider),
+              icon: const Icon(Icons.share),
+              tooltip: languageProvider.getText('share'),
+            ),
+        ],
       ),
       body: Stack(
         children: [
@@ -242,14 +313,25 @@ class _StatsScreenState extends State<StatsScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // Period filter
+                            _buildPeriodFilter(
+                                isDark, textColor, languageProvider),
+                            const SizedBox(height: 16),
+
                             // Summary cards
                             _buildSummaryCards(
                                 isDark, textColor, languageProvider),
                             const SizedBox(height: 24),
 
-                            // Weekly chart
+                            // Chart
                             _buildSectionTitle(
-                              languageProvider.getText('stats_weekly'),
+                              _selectedDays == 7
+                                  ? languageProvider.getText('stats_weekly')
+                                  : _selectedDays == 30
+                                      ? languageProvider.getText('stats_monthly')
+                                      : _selectedDays == 90
+                                          ? languageProvider.getText('stats_quarterly')
+                                          : languageProvider.getText('stats_all_time'),
                               Icons.bar_chart,
                               textColor,
                             ),
@@ -275,6 +357,70 @@ class _StatsScreenState extends State<StatsScreen> {
         ],
       ),
     );
+  }
+
+  Widget _buildPeriodFilter(
+      bool isDark, Color textColor, LanguageProvider lang) {
+    final options = [
+      (days: 7, label: '7D'),
+      (days: 30, label: '30D'),
+      (days: 90, label: '3M'),
+      (days: 0, label: lang.getText('stats_all')),
+    ];
+
+    final borderColor = isDark
+        ? Colors.white.withValues(alpha: 0.12)
+        : Colors.black.withValues(alpha: 0.1);
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.06)
+                : Colors.white.withValues(alpha: 0.5),
+            border: Border.all(color: borderColor, width: 1),
+          ),
+          padding: const EdgeInsets.all(4),
+          child: Row(
+            children: options.map((opt) {
+              final isSelected = _selectedDays == opt.days;
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() => _selectedDays = opt.days),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      color: isSelected
+                          ? Colors.orange
+                          : Colors.transparent,
+                    ),
+                    child: Text(
+                      opt.label,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: isSelected ? Colors.white : textColor,
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.w500,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ),
+    )
+        .animate()
+        .fadeIn(duration: 400.ms, delay: 50.ms);
   }
 
   Widget _buildEmptyState(Color textColor, LanguageProvider lang) {
@@ -454,14 +600,37 @@ class _StatsScreenState extends State<StatsScreen> {
     ).animate().fadeIn(duration: 400.ms, delay: 300.ms);
   }
 
+  String _getChartLabel(int index, List<MapEntry<DateTime, int>> data,
+      LanguageProvider lang) {
+    if (index < 0 || index >= data.length) return '';
+    final date = data[index].key;
+    int numDays = _selectedDays == 0 ? 90 : _selectedDays;
+
+    if (numDays <= 7) {
+      return _getDayAbbreviation(date.weekday, lang);
+    } else if (numDays <= 30) {
+      // Show every 5th label to avoid crowding
+      if (index % 5 == 0 || index == data.length - 1) {
+        return '${date.day}/${date.month}';
+      }
+      return '';
+    } else {
+      // Weekly: show week start date
+      return '${date.day}/${date.month}';
+    }
+  }
+
   Widget _buildWeeklyChart(
       bool isDark, Color textColor, LanguageProvider lang) {
-    final days = _last7Days;
-    double maxY = days
+    final data = _chartData;
+    double maxY = data
             .map((e) => e.value)
             .fold(0, (a, b) => a > b ? a : b)
             .toDouble();
     if (maxY < 1) maxY = 1;
+
+    int numDays = _selectedDays == 0 ? 90 : _selectedDays;
+    double barWidth = numDays <= 7 ? 24 : (numDays <= 30 ? 8 : 16);
 
     final borderColor = isDark
         ? Colors.white.withValues(alpha: 0.12)
@@ -537,23 +706,23 @@ class _StatsScreenState extends State<StatsScreen> {
                   sideTitles: SideTitles(
                     showTitles: true,
                     getTitlesWidget: (value, meta) {
-                      int index = value.toInt();
-                      if (index >= 0 && index < days.length) {
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Text(
-                            _getDayAbbreviation(
-                                days[index].key.weekday, lang),
-                            style: TextStyle(
-                              color: textColor.withValues(
-                                  alpha: 0.6),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        );
+                      String label =
+                          _getChartLabel(value.toInt(), data, lang);
+                      if (label.isEmpty) {
+                        return const SizedBox.shrink();
                       }
-                      return const SizedBox.shrink();
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(
+                          label,
+                          style: TextStyle(
+                            color: textColor.withValues(
+                                alpha: 0.6),
+                            fontSize: numDays <= 7 ? 12 : 10,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      );
                     },
                   ),
                 ),
@@ -570,20 +739,20 @@ class _StatsScreenState extends State<StatsScreen> {
                   );
                 },
               ),
-              barGroups: days.asMap().entries.map((entry) {
+              barGroups: data.asMap().entries.map((entry) {
                 int index = entry.key;
                 int count = entry.value.value;
-                bool isToday = index == days.length - 1;
+                bool isLast = index == data.length - 1;
 
                 return BarChartGroupData(
                   x: index,
                   barRods: [
                     BarChartRodData(
                       toY: count.toDouble(),
-                      color: isToday
+                      color: isLast
                           ? Colors.orange
                           : Colors.orange.withValues(alpha: 0.5),
-                      width: 24,
+                      width: barWidth,
                       borderRadius: const BorderRadius.only(
                         topLeft: Radius.circular(6),
                         topRight: Radius.circular(6),
