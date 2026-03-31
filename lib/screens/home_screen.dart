@@ -348,6 +348,34 @@ class AppDrawer extends StatelessWidget {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final languageProvider = Provider.of<LanguageProvider>(context);
     final isDarkMode = themeProvider.isDarkMode;
+    final textColor = isDarkMode ? Colors.white : Colors.black87;
+
+    final menuItems = [
+      _DrawerMenuItem(
+        icon: Icons.emoji_events_rounded,
+        text: languageProvider.getText('achievements_title'),
+        color: Colors.amber,
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const AchievementsScreen())),
+      ),
+      _DrawerMenuItem(
+        icon: Icons.history_rounded,
+        text: languageProvider.getText('history'),
+        color: Colors.blue,
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const HistoryScreen())),
+      ),
+      _DrawerMenuItem(
+        icon: Icons.insert_chart_rounded,
+        text: languageProvider.getText('stats'),
+        color: Colors.teal,
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const StatsScreen())),
+      ),
+      _DrawerMenuItem(
+        icon: Icons.settings_rounded,
+        text: languageProvider.getText('settings'),
+        color: Colors.grey,
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsScreen())),
+      ),
+    ];
 
     return ClipRRect(
       child: BackdropFilter(
@@ -360,14 +388,12 @@ class AppDrawer extends StatelessWidget {
               end: Alignment.bottomRight,
               colors: isDarkMode
                   ? [
-                      const Color(0xFF1E2030).withOpacity(0.85),
-                      const Color(0xFF3A3A48).withOpacity(0.85),
-                      const Color(0xFF1E2030).withOpacity(0.85),
+                      const Color(0xFF1E2030).withOpacity(0.92),
+                      const Color(0xFF2A2A38).withOpacity(0.92),
                     ]
                   : [
-                      const Color(0xFFE0F7FA).withOpacity(0.9),
-                      Colors.white.withOpacity(0.85),
-                      const Color(0xFFE8EAF6).withOpacity(0.9),
+                      Colors.white.withOpacity(0.92),
+                      const Color(0xFFF5F5F5).withOpacity(0.92),
                     ],
             ),
           ),
@@ -375,40 +401,47 @@ class AppDrawer extends StatelessWidget {
             child: Column(
               children: [
                 _buildDrawerHeader(context, isDarkMode, languageProvider),
-                const Divider(height: 1, indent: 12, endIndent: 12),
+                const SizedBox(height: 8),
                 Expanded(
-                  child: ListView(
-                    padding: EdgeInsets.zero,
-                    children: [
-                      _buildDrawerItem(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    itemCount: menuItems.length,
+                    itemBuilder: (context, index) {
+                      final item = menuItems[index];
+                      return _buildDrawerItem(
                         context: context,
-                        icon: Icons.history,
-                        text: languageProvider.getText('history'),
-                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const HistoryScreen())),
-                      ),
-                      _buildDrawerItem(
-                        context: context,
-                        icon: Icons.insert_chart,
-                        text: languageProvider.getText('stats'),
-                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const StatsScreen())),
-                      ),
-                      _buildDrawerItem(
-                        context: context,
-                        icon: Icons.settings,
-                        text: languageProvider.getText('settings'),
-                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsScreen())),
-                      ),
-                    ],
+                        icon: item.icon,
+                        text: item.text,
+                        color: item.color,
+                        onTap: item.onTap,
+                        isDarkMode: isDarkMode,
+                        textColor: textColor,
+                      ).animate().fadeIn(
+                        duration: 300.ms,
+                        delay: Duration(milliseconds: 80 + (index * 60)),
+                      ).slideX(begin: -0.15, end: 0);
+                    },
                   ),
                 ),
-                const Divider(height: 1, indent: 12, endIndent: 12),
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: _buildDrawerItem(
-                    context: context,
-                    icon: Icons.info_outline,
-                    text: languageProvider.getText('about'),
-                    onTap: () => _showAboutDialog(context),
+                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
+                  child: Column(
+                    children: [
+                      Divider(
+                        color: isDarkMode
+                            ? Colors.white.withOpacity(0.08)
+                            : Colors.black.withOpacity(0.06),
+                      ),
+                      _buildDrawerItem(
+                        context: context,
+                        icon: Icons.info_outline_rounded,
+                        text: languageProvider.getText('about'),
+                        color: Colors.blueGrey,
+                        onTap: () => _showAboutDialog(context),
+                        isDarkMode: isDarkMode,
+                        textColor: textColor,
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -424,112 +457,183 @@ class AppDrawer extends StatelessWidget {
     final level = gamification.currentLevel;
     final progress = gamification.levelProgress;
     final textColor = isDarkMode ? Colors.white : Colors.black87;
-    final subtitleColor = isDarkMode ? Colors.white.withOpacity(0.7) : Colors.black.withOpacity(0.6);
+    final subtitleColor = isDarkMode ? Colors.white.withOpacity(0.7) : Colors.black.withOpacity(0.55);
 
-    return Padding(
-      padding: const EdgeInsets.all(12.0),
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
       child: InkWell(
         onTap: () {
-          Navigator.pop(context); // Close drawer
+          Navigator.pop(context);
           Navigator.push(context, MaterialPageRoute(builder: (context) => const AchievementsScreen()));
         },
-        borderRadius: BorderRadius.circular(16),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-            child: Container(
-              padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                gradient: LinearGradient(
-                  colors: [
-                    level.color.withOpacity(0.35),
-                    level.color.withOpacity(0.2),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                border: Border.all(color: level.color.withOpacity(0.4), width: 1),
-              ),
-              child: Row(
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.all(20.0),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            gradient: LinearGradient(
+              colors: [
+                level.color.withOpacity(0.25),
+                level.color.withOpacity(0.10),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            border: Border.all(color: level.color.withOpacity(0.3), width: 1),
+          ),
+          child: Column(
+            children: [
+              Row(
                 children: [
                   Container(
-                    width: 60,
-                    height: 60,
+                    width: 56,
+                    height: 56,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: level.color.withOpacity(0.2),
-                      border: Border.all(color: level.color, width: 2),
+                      gradient: LinearGradient(
+                        colors: [
+                          level.color.withOpacity(0.3),
+                          level.color.withOpacity(0.15),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      border: Border.all(color: level.color.withOpacity(0.6), width: 2.5),
+                      boxShadow: [
+                        BoxShadow(
+                          color: level.color.withOpacity(0.2),
+                          blurRadius: 12,
+                          spreadRadius: 1,
+                        ),
+                      ],
                     ),
                     child: Center(
-                      child: Text(level.icon, style: const TextStyle(fontSize: 28)),
+                      child: Text(level.icon, style: const TextStyle(fontSize: 26)),
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '${languageProvider.getText('level_label')} ${level.level}',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: textColor,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
                           languageProvider.getText(level.titleKey),
                           style: TextStyle(
-                            fontSize: 14,
-                            color: subtitleColor,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: textColor,
+                            letterSpacing: 0.3,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 8),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: LinearProgressIndicator(
-                            value: progress.clamp(0.0, 1.0),
-                            backgroundColor: level.color.withOpacity(0.2),
-                            valueColor: AlwaysStoppedAnimation<Color>(level.color),
-                            minHeight: 6,
+                        const SizedBox(height: 3),
+                        Text(
+                          gamification.isMaxLevel
+                              ? languageProvider.getText('level_max')
+                              : '${languageProvider.getText('level_label')} ${level.level}',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: gamification.isMaxLevel ? level.color : subtitleColor,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
                     ),
                   ),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    color: subtitleColor,
+                    size: 22,
+                  ),
                 ],
               ),
-            ),
+              const SizedBox(height: 14),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: LinearProgressIndicator(
+                  value: progress.clamp(0.0, 1.0),
+                  backgroundColor: level.color.withOpacity(0.15),
+                  valueColor: AlwaysStoppedAnimation<Color>(level.color),
+                  minHeight: 7,
+                ),
+              ),
+            ],
           ),
         ),
       ),
-    );
+    ).animate().fadeIn(duration: 350.ms, delay: 50.ms).slideY(begin: -0.1, end: 0);
   }
 
   Widget _buildDrawerItem({
     required BuildContext context,
     required IconData icon,
     required String text,
+    required Color color,
     required VoidCallback onTap,
+    required bool isDarkMode,
+    required Color textColor,
   }) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final isDarkMode = themeProvider.isDarkMode;
-    final color = isDarkMode ? Colors.white : Colors.black87;
-
-    return Material(
-      color: Colors.transparent,
-      child: ListTile(
-        leading: Icon(icon, color: color.withOpacity(0.8)),
-        title: Text(text, style: TextStyle(color: color, fontSize: 16)),
-        onTap: () {
-          Navigator.pop(context); // Close drawer before navigating
-          onTap();
-        },
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          onTap: () {
+            Navigator.pop(context);
+            onTap();
+          },
+          borderRadius: BorderRadius.circular(14),
+          splashColor: color.withOpacity(0.1),
+          highlightColor: color.withOpacity(0.05),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            child: Row(
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    color: color.withOpacity(isDarkMode ? 0.15 : 0.1),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: color,
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Text(
+                    text,
+                    style: TextStyle(
+                      color: textColor,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
+}
+
+class _DrawerMenuItem {
+  final IconData icon;
+  final String text;
+  final Color color;
+  final VoidCallback onTap;
+
+  _DrawerMenuItem({
+    required this.icon,
+    required this.text,
+    required this.color,
+    required this.onTap,
+  });
 }

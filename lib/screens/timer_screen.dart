@@ -15,6 +15,7 @@ import '../theme_provider.dart';
 import '../language_provider.dart';
 import '../services/notification_service.dart';
 import '../services/ad_service.dart';
+import '../services/gamification_service.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'dart:async';
 
@@ -550,7 +551,7 @@ class _TimerScreenState extends State<TimerScreen> {
                 _currentSeconds != _lastBeepSecond) {
               _lastBeepSecond = _currentSeconds;
               _playBeep();
-              print("🔊 Beep countdown: ${_currentSeconds} segundos restantes");
+              print("🔊 Beep countdown: $_currentSeconds segundos restantes");
             }
 
             // Sonido especial doble en el segundo 30 (mitad del minuto) - independiente
@@ -1091,6 +1092,50 @@ class _TimerScreenState extends State<TimerScreen> {
     }
 
     await prefs.setStringList('workout_history', history);
+
+    // Check for new badges
+    if (!mounted) return;
+    final gamification = Provider.of<GamificationService>(context, listen: false);
+    final result = await gamification.checkAndUnlockBadges();
+    if ((result.newBadges.isNotEmpty || result.leveledUp) && mounted) {
+      Future.delayed(const Duration(milliseconds: 800), () {
+        if (mounted) _showBadgeUnlockedDialog(result);
+      });
+    }
+  }
+
+  void _showBadgeUnlockedDialog(BadgeCheckResult result) {
+    final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    final isDark = themeProvider.isDarkMode;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final isLevelUp = result.leveledUp && result.newLevel != null;
+
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Badge',
+      barrierColor: Colors.black54,
+      transitionDuration: const Duration(milliseconds: 300),
+      transitionBuilder: (context, anim1, anim2, child) {
+        return FadeTransition(
+          opacity: anim1,
+          child: ScaleTransition(
+            scale: CurvedAnimation(parent: anim1, curve: Curves.easeOutBack),
+            child: child,
+          ),
+        );
+      },
+      pageBuilder: (ctx, anim1, anim2) {
+        return _BadgeUnlockedOverlay(
+          result: result,
+          languageProvider: languageProvider,
+          isDark: isDark,
+          textColor: textColor,
+          isLevelUp: isLevelUp,
+        );
+      },
+    );
   }
 
   String _getCompletionMessage() {
@@ -2382,5 +2427,224 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
   String _formatTimeDouble(double seconds) {
     int intSeconds = seconds.round();
     return _formatTime(intSeconds);
+  }
+}
+
+class _BadgeUnlockedOverlay extends StatefulWidget {
+  final BadgeCheckResult result;
+  final LanguageProvider languageProvider;
+  final bool isDark;
+  final Color textColor;
+  final bool isLevelUp;
+
+  const _BadgeUnlockedOverlay({
+    required this.result,
+    required this.languageProvider,
+    required this.isDark,
+    required this.textColor,
+    required this.isLevelUp,
+  });
+
+  @override
+  State<_BadgeUnlockedOverlay> createState() => _BadgeUnlockedOverlayState();
+}
+
+class _BadgeUnlockedOverlayState extends State<_BadgeUnlockedOverlay> {
+  bool _showConfetti = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() => _showConfetti = true);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final result = widget.result;
+    final languageProvider = widget.languageProvider;
+    final isDark = widget.isDark;
+    final textColor = widget.textColor;
+
+    return Stack(
+      children: [
+        // Dialog
+        Center(
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 40),
+              padding: const EdgeInsets.fromLTRB(24, 28, 24, 16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                color: isDark ? const Color(0xFF2A2A38) : Colors.white,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // New badges
+                  ...result.newBadges.map((id) {
+                    final badge = GamificationService.getBadge(id);
+                    final name = languageProvider.getText('badge_$id');
+                    final desc = languageProvider.getText('badge_${id}_desc');
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  badge.color.withValues(alpha: 0.5),
+                                  badge.color.withValues(alpha: 0.25),
+                                ],
+                              ),
+                            ),
+                            child: Center(
+                              child: Text(badge.icon, style: const TextStyle(fontSize: 42)),
+                            ),
+                          )
+                              .animate()
+                              .scale(
+                                begin: const Offset(0, 0),
+                                end: const Offset(1, 1),
+                                duration: 500.ms,
+                                curve: Curves.elasticOut,
+                              ),
+                          const SizedBox(height: 12),
+                          Text(
+                            languageProvider.getText('badge_unlocked_title'),
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.orange,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            name,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: textColor,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            desc,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: textColor.withValues(alpha: 0.7),
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                  // Level up section
+                  if (result.leveledUp && result.newLevel != null) ...[
+                    const SizedBox(height: 8),
+                    Divider(color: textColor.withValues(alpha: 0.15)),
+                    const SizedBox(height: 8),
+                    Container(
+                      width: 90,
+                      height: 90,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            result.newLevel!.color.withValues(alpha: 0.5),
+                            result.newLevel!.color.withValues(alpha: 0.2),
+                          ],
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: result.newLevel!.color.withValues(alpha: 0.4),
+                            blurRadius: 20,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Text(
+                          result.newLevel!.icon,
+                          style: const TextStyle(fontSize: 48),
+                        ),
+                      ),
+                    )
+                        .animate()
+                        .scale(
+                          begin: const Offset(0, 0),
+                          end: const Offset(1, 1),
+                          duration: 600.ms,
+                          curve: Curves.elasticOut,
+                        )
+                        .shimmer(
+                          duration: 1200.ms,
+                          delay: 400.ms,
+                          color: result.newLevel!.color.withValues(alpha: 0.3),
+                        ),
+                    const SizedBox(height: 14),
+                    Text(
+                      languageProvider.getText('level_up_title'),
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: result.newLevel!.color,
+                      ),
+                    )
+                        .animate()
+                        .fadeIn(delay: 300.ms, duration: 400.ms),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${languageProvider.getText('level_label')} ${result.newLevel!.level} — ${languageProvider.getText(result.newLevel!.titleKey)}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: textColor,
+                      ),
+                    )
+                        .animate()
+                        .fadeIn(delay: 500.ms, duration: 400.ms),
+                  ],
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text('OK'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        // Confetti on top of everything
+        Positioned.fill(
+          child: IgnorePointer(
+            child: ConfettiEffect(
+              isPlaying: _showConfetti,
+              isIntense: widget.isLevelUp,
+              duration: widget.isLevelUp ? 5 : 3,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

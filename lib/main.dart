@@ -11,6 +11,7 @@ import 'services/license_manager.dart';
 import 'services/analytics_manager.dart';
 import 'services/notification_service.dart';
 import 'services/ad_service.dart';
+import 'services/gamification_service.dart';
 
 void main() async {
   // Asegurar que Flutter esté inicializado
@@ -34,6 +35,7 @@ void main() async {
         ChangeNotifierProvider(create: (context) => ThemeProvider()),
         ChangeNotifierProvider(create: (context) => LanguageProvider()),
         ChangeNotifierProvider(create: (context) => AdService()),
+        ChangeNotifierProvider(create: (context) => GamificationService()),
       ],
       child: const CrossFitTimerApp(),
     ),

@@ -5,15 +5,15 @@ import 'dart:math' as math;
 class ConfettiEffect extends StatefulWidget {
   final bool isPlaying;
   final VoidCallback? onComplete;
-  final int duration; // Duración en segundos
-  final bool isIntense; // Para efectos más intensos en celebración
+  final int duration;
+  final bool isIntense;
 
   const ConfettiEffect({
     super.key,
     required this.isPlaying,
     this.onComplete,
-    this.duration = 4, // 4 segundos por defecto
-    this.isIntense = false, // Normal por defecto
+    this.duration = 3,
+    this.isIntense = false,
   });
 
   @override
@@ -21,26 +21,25 @@ class ConfettiEffect extends StatefulWidget {
 }
 
 class _ConfettiEffectState extends State<ConfettiEffect> {
-  late ConfettiController _confettiController;
-  late ConfettiController _confettiController2;
-  late ConfettiController
-  _confettiController3; // Tercer controlador para efectos intensos
-  late ConfettiController
-  _confettiController4; // Cuarto controlador para efectos intensos
+  late ConfettiController _controller;
+  late ConfettiController _controller2;
+
+  // Colores de los botones del menú principal
+  static const _colors = [
+    Colors.orange,
+    Colors.blue,
+    Colors.red,
+    Colors.green,
+    Colors.purple,
+  ];
 
   @override
   void initState() {
     super.initState();
-    _confettiController = ConfettiController(
+    _controller = ConfettiController(
       duration: Duration(seconds: widget.duration),
     );
-    _confettiController2 = ConfettiController(
-      duration: Duration(seconds: widget.duration),
-    );
-    _confettiController3 = ConfettiController(
-      duration: Duration(seconds: widget.duration),
-    );
-    _confettiController4 = ConfettiController(
+    _controller2 = ConfettiController(
       duration: Duration(seconds: widget.duration),
     );
   }
@@ -49,25 +48,14 @@ class _ConfettiEffectState extends State<ConfettiEffect> {
   void didUpdateWidget(ConfettiEffect oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.isPlaying && !oldWidget.isPlaying) {
-      // Efectos normales siempre presentes
-      _confettiController.play();
+      _controller.play();
 
-      Future.delayed(const Duration(milliseconds: 800), () {
-        if (mounted) _confettiController2.play();
-      });
-
-      // Efectos intensos solo para celebraciones especiales
       if (widget.isIntense) {
-        Future.delayed(const Duration(milliseconds: 400), () {
-          if (mounted) _confettiController3.play();
-        });
-
-        Future.delayed(const Duration(milliseconds: 1200), () {
-          if (mounted) _confettiController4.play();
+        Future.delayed(const Duration(milliseconds: 600), () {
+          if (mounted) _controller2.play();
         });
       }
 
-      // Llamar onComplete después de la animación
       Future.delayed(Duration(seconds: widget.duration), () {
         if (mounted) widget.onComplete?.call();
       });
@@ -76,10 +64,8 @@ class _ConfettiEffectState extends State<ConfettiEffect> {
 
   @override
   void dispose() {
-    _confettiController.dispose();
-    _confettiController2.dispose();
-    _confettiController3.dispose();
-    _confettiController4.dispose();
+    _controller.dispose();
+    _controller2.dispose();
     super.dispose();
   }
 
@@ -87,88 +73,34 @@ class _ConfettiEffectState extends State<ConfettiEffect> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Confetti principal desde el centro hacia arriba - más elegante
-        Align(
-          alignment: Alignment.center,
-          child: ConfettiWidget(
-            confettiController: _confettiController,
-            blastDirection: -math.pi / 2, // Hacia arriba
-            maxBlastForce: widget.isIntense ? 35 : 20,
-            minBlastForce: widget.isIntense ? 20 : 10,
-            emissionFrequency: widget.isIntense ? 0.2 : 0.3,
-            numberOfParticles: widget.isIntense ? 25 : 15,
-            gravity: 0.3,
-            colors: const [
-              Colors.orange,
-              Colors.amber,
-              Colors.red,
-              Colors.yellow,
-              Colors.deepOrange,
-            ],
-          ),
-        ),
-
-        // Confetti lateral suave
+        // Confetti suave desde arriba-centro
         Align(
           alignment: Alignment.topCenter,
           child: ConfettiWidget(
-            confettiController: _confettiController2,
+            confettiController: _controller,
             blastDirection: math.pi / 2, // Hacia abajo
-            maxBlastForce: widget.isIntense ? 25 : 15,
-            minBlastForce: widget.isIntense ? 15 : 8,
-            emissionFrequency: widget.isIntense ? 0.3 : 0.4,
-            numberOfParticles: widget.isIntense ? 18 : 10,
-            gravity: 0.2,
-            colors: const [
-              Colors.orange,
-              Colors.amber,
-              Colors.yellow,
-              Colors.red,
-            ],
+            maxBlastForce: 8,
+            minBlastForce: 3,
+            emissionFrequency: widget.isIntense ? 0.06 : 0.04,
+            numberOfParticles: widget.isIntense ? 6 : 4,
+            gravity: 0.15,
+            colors: _colors,
           ),
         ),
 
-        // Confetti lateral izquierdo (solo para efectos intensos)
+        // Segundo emisor solo para level-up
         if (widget.isIntense)
           Align(
-            alignment: Alignment.centerLeft,
+            alignment: Alignment.topCenter,
             child: ConfettiWidget(
-              confettiController: _confettiController3,
-              blastDirection: math.pi / 4, // Hacia arriba-derecha
-              maxBlastForce: 30,
-              minBlastForce: 15,
-              emissionFrequency: 0.25,
-              numberOfParticles: 20,
-              gravity: 0.25,
-              colors: const [
-                Colors.amber,
-                Colors.orange,
-                Colors.yellow,
-                Colors.redAccent,
-                Colors.deepOrange,
-              ],
-            ),
-          ),
-
-        // Confetti lateral derecho (solo para efectos intensos)
-        if (widget.isIntense)
-          Align(
-            alignment: Alignment.centerRight,
-            child: ConfettiWidget(
-              confettiController: _confettiController4,
-              blastDirection: 3 * math.pi / 4, // Hacia arriba-izquierda
-              maxBlastForce: 30,
-              minBlastForce: 15,
-              emissionFrequency: 0.25,
-              numberOfParticles: 20,
-              gravity: 0.25,
-              colors: const [
-                Colors.amber,
-                Colors.orange,
-                Colors.yellow,
-                Colors.redAccent,
-                Colors.deepOrange,
-              ],
+              confettiController: _controller2,
+              blastDirectionality: BlastDirectionality.explosive,
+              maxBlastForce: 10,
+              minBlastForce: 4,
+              emissionFrequency: 0.04,
+              numberOfParticles: 5,
+              gravity: 0.12,
+              colors: _colors,
             ),
           ),
       ],

@@ -7,9 +7,11 @@
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
-import 'package:crossfit_timer_pro/main.dart';
-import 'package:crossfit_timer_pro/theme_provider.dart';
-import 'package:crossfit_timer_pro/language_provider.dart';
+import 'package:crossfit_timer/main.dart';
+import 'package:crossfit_timer/theme_provider.dart';
+import 'package:crossfit_timer/language_provider.dart';
+import 'package:crossfit_timer/services/ad_service.dart';
+import 'package:crossfit_timer/services/gamification_service.dart';
 
 void main() {
   testWidgets('CrossFit Timer app starts correctly', (
@@ -21,6 +23,8 @@ void main() {
         providers: [
           ChangeNotifierProvider(create: (context) => ThemeProvider()),
           ChangeNotifierProvider(create: (context) => LanguageProvider()),
+          ChangeNotifierProvider(create: (context) => AdService()),
+          ChangeNotifierProvider(create: (context) => GamificationService()),
         ],
         child: const CrossFitTimerApp(),
       ),
@@ -30,7 +34,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify that the home screen loads with timer options
-    expect(find.text('Workout Timer'), findsAny);
+    expect(find.text('CrossFit Timer Pro'), findsOneWidget);
     expect(find.text('AMRAP'), findsOneWidget);
     expect(find.text('EMOM'), findsOneWidget);
     expect(find.text('TABATA'), findsOneWidget);

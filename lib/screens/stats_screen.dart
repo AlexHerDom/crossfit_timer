@@ -7,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme_provider.dart';
 import '../language_provider.dart';
+import '../services/gamification_service.dart';
 import 'history_screen.dart';
 
 class StatsScreen extends StatefulWidget {
@@ -338,6 +339,8 @@ class _StatsScreenState extends State<StatsScreen> {
                             const SizedBox(height: 12),
                             _buildWeeklyChart(
                                 isDark, textColor, languageProvider),
+                            const SizedBox(height: 24),
+
                             const SizedBox(height: 24),
 
                             // By type
@@ -892,5 +895,257 @@ class _StatsScreenState extends State<StatsScreen> {
         .animate()
         .fadeIn(duration: 400.ms, delay: 400.ms)
         .slideY(begin: 0.1, end: 0);
+  }
+
+  Widget _buildBadgesSection(
+      bool isDark, Color textColor, LanguageProvider lang) {
+    final gamification = Provider.of<GamificationService>(context);
+    final unlocked = gamification.unlockedBadges;
+    final allBadges = GamificationService.allBadges;
+    final unlockedCount = unlocked.length;
+
+    final borderColor = isDark
+        ? Colors.white.withValues(alpha: 0.12)
+        : Colors.black.withValues(alpha: 0.1);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.military_tech, color: textColor, size: 22),
+            const SizedBox(width: 8),
+            Text(
+              lang.getText('badges_title'),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: textColor,
+              ),
+            ),
+            const Spacer(),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.orange.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '$unlockedCount/${allBadges.length} ${lang.getText('badges_unlocked')}',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                ),
+              ),
+            ),
+          ],
+        ).animate().fadeIn(duration: 400.ms, delay: 450.ms),
+        const SizedBox(height: 12),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isDark
+                      ? [
+                          Colors.white.withValues(alpha: 0.08),
+                          Colors.white.withValues(alpha: 0.04)
+                        ]
+                      : [
+                          Colors.white.withValues(alpha: 0.7),
+                          Colors.white.withValues(alpha: 0.4)
+                        ],
+                ),
+                border: Border.all(color: borderColor, width: 1),
+              ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final columns = (constraints.maxWidth / 85).floor().clamp(4, 6);
+                  return GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: columns,
+                      childAspectRatio: 0.75,
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 12,
+                    ),
+                    itemCount: allBadges.length,
+                    itemBuilder: (context, index) {
+                      final badge = allBadges[index];
+                      final isUnlocked = unlocked.contains(badge.id);
+                      return _buildBadgeItem(
+                        badge: badge,
+                        isUnlocked: isUnlocked,
+                        isDark: isDark,
+                        textColor: textColor,
+                        lang: lang,
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ),
+        )
+            .animate()
+            .fadeIn(duration: 400.ms, delay: 500.ms)
+            .slideY(begin: 0.1, end: 0),
+      ],
+    );
+  }
+
+  Widget _buildBadgeItem({
+    required AchievementBadge badge,
+    required bool isUnlocked,
+    required bool isDark,
+    required Color textColor,
+    required LanguageProvider lang,
+  }) {
+    final name = lang.getText('badge_${badge.id}');
+
+    return GestureDetector(
+      onTap: () => _showBadgeDetail(badge, isUnlocked, isDark, textColor, lang),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: isUnlocked
+                  ? LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        badge.color.withValues(alpha: 0.4),
+                        badge.color.withValues(alpha: 0.2),
+                      ],
+                    )
+                  : null,
+              color: isUnlocked
+                  ? null
+                  : (isDark
+                      ? Colors.white.withValues(alpha: 0.06)
+                      : Colors.black.withValues(alpha: 0.06)),
+              border: Border.all(
+                color: isUnlocked
+                    ? badge.color.withValues(alpha: 0.5)
+                    : (isDark
+                        ? Colors.white.withValues(alpha: 0.1)
+                        : Colors.black.withValues(alpha: 0.1)),
+                width: 2,
+              ),
+            ),
+            child: Center(
+              child: isUnlocked
+                  ? Text(badge.icon, style: const TextStyle(fontSize: 24))
+                  : Icon(
+                      Icons.lock_outline,
+                      size: 20,
+                      color: textColor.withValues(alpha: 0.25),
+                    ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Flexible(
+            child: Text(
+              isUnlocked ? name : '???',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: isUnlocked
+                    ? textColor
+                    : textColor.withValues(alpha: 0.3),
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showBadgeDetail(AchievementBadge badge, bool isUnlocked, bool isDark,
+      Color textColor, LanguageProvider lang) {
+    final name = lang.getText('badge_${badge.id}');
+    final desc = lang.getText('badge_${badge.id}_desc');
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: isDark ? const Color(0xFF2A2A38) : Colors.white,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: isUnlocked
+                    ? LinearGradient(
+                        colors: [
+                          badge.color.withValues(alpha: 0.4),
+                          badge.color.withValues(alpha: 0.2),
+                        ],
+                      )
+                    : null,
+                color: isUnlocked
+                    ? null
+                    : (isDark
+                        ? Colors.white.withValues(alpha: 0.08)
+                        : Colors.grey.withValues(alpha: 0.15)),
+              ),
+              child: Center(
+                child: isUnlocked
+                    ? Text(badge.icon, style: const TextStyle(fontSize: 40))
+                    : Icon(Icons.lock_outline,
+                        size: 36,
+                        color: textColor.withValues(alpha: 0.3)),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              isUnlocked ? name : lang.getText('badge_locked'),
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: textColor,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              desc,
+              style: TextStyle(
+                fontSize: 14,
+                color: textColor.withValues(alpha: 0.7),
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              lang.getText('close'),
+              style: const TextStyle(color: Colors.orange),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
