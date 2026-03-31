@@ -372,7 +372,7 @@ class AppDrawer extends StatelessWidget {
       _DrawerMenuItem(
         icon: Icons.settings_rounded,
         text: languageProvider.getText('settings'),
-        color: Colors.grey,
+        color: Colors.blueGrey,
         onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsScreen())),
       ),
     ];
@@ -397,55 +397,52 @@ class AppDrawer extends StatelessWidget {
                     ],
             ),
           ),
-          child: SafeArea(
-            child: Column(
-              children: [
-                _buildDrawerHeader(context, isDarkMode, languageProvider),
-                const SizedBox(height: 8),
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    itemCount: menuItems.length,
-                    itemBuilder: (context, index) {
-                      final item = menuItems[index];
-                      return _buildDrawerItem(
-                        context: context,
-                        icon: item.icon,
-                        text: item.text,
-                        color: item.color,
-                        onTap: item.onTap,
-                        isDarkMode: isDarkMode,
-                        textColor: textColor,
-                      ).animate().fadeIn(
-                        duration: 300.ms,
-                        delay: Duration(milliseconds: 80 + (index * 60)),
-                      ).slideX(begin: -0.15, end: 0);
-                    },
-                  ),
+          child: Column(
+            children: [
+              _buildDrawerHeader(context, isDarkMode, languageProvider),
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  itemCount: menuItems.length,
+                  itemBuilder: (context, index) {
+                    final item = menuItems[index];
+                    return _buildDrawerItem(
+                      context: context,
+                      icon: item.icon,
+                      text: item.text,
+                      color: item.color,
+                      onTap: item.onTap,
+                      isDarkMode: isDarkMode,
+                      textColor: textColor,
+                    ).animate().fadeIn(
+                      duration: 300.ms,
+                      delay: Duration(milliseconds: 80 + (index * 60)),
+                    ).slideX(begin: -0.15, end: 0);
+                  },
                 ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
-                  child: Column(
-                    children: [
-                      Divider(
-                        color: isDarkMode
-                            ? Colors.white.withOpacity(0.08)
-                            : Colors.black.withOpacity(0.06),
-                      ),
-                      _buildDrawerItem(
-                        context: context,
-                        icon: Icons.info_outline_rounded,
-                        text: languageProvider.getText('about'),
-                        color: Colors.blueGrey,
-                        onTap: () => _showAboutDialog(context),
-                        isDarkMode: isDarkMode,
-                        textColor: textColor,
-                      ),
-                    ],
-                  ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
+                child: Column(
+                  children: [
+                    Divider(
+                      color: isDarkMode
+                          ? Colors.white.withOpacity(0.08)
+                          : Colors.black.withOpacity(0.06),
+                    ),
+                    _buildDrawerItem(
+                      context: context,
+                      icon: Icons.info_outline_rounded,
+                      text: languageProvider.getText('about'),
+                      color: Colors.blueGrey,
+                      onTap: () => _showAboutDialog(context),
+                      isDarkMode: isDarkMode,
+                      textColor: textColor,
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -459,106 +456,106 @@ class AppDrawer extends StatelessWidget {
     final textColor = isDarkMode ? Colors.white : Colors.black87;
     final subtitleColor = isDarkMode ? Colors.white.withOpacity(0.7) : Colors.black.withOpacity(0.55);
 
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-      child: InkWell(
-        onTap: () {
-          Navigator.pop(context);
-          Navigator.push(context, MaterialPageRoute(builder: (context) => const AchievementsScreen()));
-        },
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          padding: const EdgeInsets.all(20.0),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            gradient: LinearGradient(
-              colors: [
-                level.color.withOpacity(0.3),
-                level.color.withOpacity(0.15),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            border: Border.all(color: isDarkMode ? Colors.white.withOpacity(0.12) : Colors.black.withOpacity(0.1), width: 1),
-          ),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: [
-                          level.color.withOpacity(0.3),
-                          level.color.withOpacity(0.15),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      border: Border.all(color: level.color.withOpacity(0.6), width: 2.5),
-                      boxShadow: [
-                        BoxShadow(
-                          color: level.color.withOpacity(0.2),
-                          blurRadius: 12,
-                          spreadRadius: 1,
-                        ),
-                      ],
-                    ),
-                    child: Center(
-                      child: Text(level.icon, style: const TextStyle(fontSize: 26)),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          languageProvider.getText(level.titleKey),
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: textColor,
-                            letterSpacing: 0.3,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          gamification.isMaxLevel
-                              ? languageProvider.getText('level_max')
-                              : '${languageProvider.getText('level_label')} ${level.level}',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: gamification.isMaxLevel ? level.color : subtitleColor,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Icon(
-                    Icons.chevron_right_rounded,
-                    color: subtitleColor,
-                    size: 22,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: LinearProgressIndicator(
-                  value: progress.clamp(0.0, 1.0),
-                  backgroundColor: level.color.withOpacity(0.15),
-                  valueColor: AlwaysStoppedAnimation<Color>(level.color),
-                  minHeight: 7,
-                ),
-              ),
+    return InkWell(
+      onTap: () {
+        Navigator.pop(context);
+        Navigator.push(context, MaterialPageRoute(builder: (context) => const AchievementsScreen()));
+      },
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(20, 40, 20, 20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              level.color.withOpacity(0.3),
+              level.color.withOpacity(0.15),
             ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
+          border: Border(
+            bottom: BorderSide(
+              color: isDarkMode ? Colors.white.withOpacity(0.12) : Colors.black.withOpacity(0.1),
+              width: 1,
+            ),
+          ),
+        ),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [
+                        level.color.withOpacity(0.3),
+                        level.color.withOpacity(0.15),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    border: Border.all(color: level.color.withOpacity(0.6), width: 2.5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: level.color.withOpacity(0.2),
+                        blurRadius: 12,
+                        spreadRadius: 1,
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Text(level.icon, style: const TextStyle(fontSize: 26)),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        languageProvider.getText(level.titleKey),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: textColor,
+                          letterSpacing: 0.3,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        gamification.isMaxLevel
+                            ? languageProvider.getText('level_max')
+                            : '${languageProvider.getText('level_label')} ${level.level}',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: gamification.isMaxLevel ? level.color : subtitleColor,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: subtitleColor,
+                  size: 22,
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: LinearProgressIndicator(
+                value: progress.clamp(0.0, 1.0),
+                backgroundColor: level.color.withOpacity(0.15),
+                valueColor: AlwaysStoppedAnimation<Color>(level.color),
+                minHeight: 7,
+              ),
+            ),
+          ],
         ),
       ),
     ).animate().fadeIn(duration: 350.ms, delay: 50.ms).slideY(begin: -0.1, end: 0);
