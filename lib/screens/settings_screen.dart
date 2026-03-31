@@ -133,7 +133,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 style: TextStyle(
                   color: themeProvider.isDarkMode
                       ? Colors.white.withValues(alpha: 0.55)
-                      : Colors.grey[600],
+                      : Colors.blueGrey,
                 ),
               ),
               trailing: Switch(
@@ -222,7 +222,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               icon: const Icon(Icons.restore),
               label: Text(languageProvider.getText('restore_defaults_button')),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey[600],
+                backgroundColor: Colors.blueGrey,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,
@@ -283,7 +283,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           style: TextStyle(
             color: isDark
                 ? Colors.white.withValues(alpha: 0.55)
-                : Colors.grey[600],
+                : Colors.blueGrey,
           ),
         ),
         trailing: Switch(
@@ -334,7 +334,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           fontSize: 14,
                           color: isDark
                               ? Colors.white.withValues(alpha: 0.55)
-                              : Colors.grey[600],
+                              : Colors.blueGrey,
                         ),
                       ),
                     ],
@@ -397,7 +397,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           fontSize: 14,
                           color: isDark
                               ? Colors.white.withValues(alpha: 0.55)
-                              : Colors.grey[600],
+                              : Colors.blueGrey,
                         ),
                       ),
                     ],
@@ -427,7 +427,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             // SLIDER DE VOLUMEN
             Row(
               children: [
-                Icon(Icons.volume_down, color: isDark ? Colors.white54 : Colors.grey[600], size: 20),
+                Icon(Icons.volume_down, color: isDark ? Colors.white54 : Colors.blueGrey, size: 20),
                 Expanded(
                   child: Slider(
                     value: _beepVolume,
@@ -630,7 +630,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     color:
                                         languageProvider.currentLanguage == 'es'
                                         ? _getThemeColor()
-                                        : (isDark ? Colors.white.withValues(alpha: 0.6) : Colors.grey[700]),
+                                        : (isDark ? Colors.white.withValues(alpha: 0.6) : Colors.blueGrey),
                                   ),
                                 ),
                               ],
@@ -672,7 +672,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     color:
                                         languageProvider.currentLanguage == 'en'
                                         ? _getThemeColor()
-                                        : (isDark ? Colors.white.withValues(alpha: 0.6) : Colors.grey[700]),
+                                        : (isDark ? Colors.white.withValues(alpha: 0.6) : Colors.blueGrey),
                                   ),
                                 ),
                               ],
@@ -751,7 +751,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildRemoveAdsSection() {
     final isDark = Provider.of<ThemeProvider>(context, listen: false).isDarkMode;
     final textColor = isDark ? Colors.white : Colors.black87;
-    final subtitleColor = isDark ? Colors.white.withValues(alpha: 0.55) : Colors.grey[600];
+    final subtitleColor = isDark ? Colors.white.withValues(alpha: 0.55) : Colors.blueGrey;
 
     return Consumer<AdService>(
       builder: (context, adService, _) {
@@ -848,7 +848,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final languageProvider = Provider.of<LanguageProvider>(context);
     final isDark = Provider.of<ThemeProvider>(context, listen: false).isDarkMode;
     final textColor = isDark ? Colors.white : Colors.black87;
-    final subtitleColor = isDark ? Colors.white.withValues(alpha: 0.55) : Colors.grey;
+        final subtitleColor = isDark ? Colors.white.withValues(alpha: 0.55) : Colors.blueGrey;
     return _buildGlassCard(
       child: Padding(
         padding: const EdgeInsets.all(16),

@@ -267,7 +267,7 @@ class AchievementsScreen extends StatelessWidget {
                     ? null
                     : (isDark
                         ? Colors.white.withOpacity(0.08)
-                        : Colors.grey.withOpacity(0.15)),
+                        : Colors.blueGrey.withOpacity(0.15)),
               ),
               child: Center(
                 child: isUnlocked

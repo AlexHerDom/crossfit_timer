@@ -1106,7 +1106,7 @@ class _StatsScreenState extends State<StatsScreen> {
                     ? null
                     : (isDark
                         ? Colors.white.withValues(alpha: 0.08)
-                        : Colors.grey.withValues(alpha: 0.15)),
+                        : Colors.blueGrey.withValues(alpha: 0.15)),
               ),
               child: Center(
                 child: isUnlocked

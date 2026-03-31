@@ -48,8 +48,6 @@ class BadgeCheckResult {
 }
 
 class GamificationService extends ChangeNotifier {
-  static const bool _useDummyData = true; // TODO: set to false for production
-
   Set<String> _unlockedBadges = {};
   int _currentStreak = 0;
   int _bestStreak = 0;
@@ -59,7 +57,7 @@ class GamificationService extends ChangeNotifier {
   int get bestStreak => _bestStreak;
 
   static const List<UserLevel> levels = [
-    UserLevel(level: 1, titleKey: 'level_1', icon: '🌱', minBadges: 0, maxBadges: 2, color: Colors.grey),
+    UserLevel(level: 1, titleKey: 'level_1', icon: '🌱', minBadges: 0, maxBadges: 2, color: Colors.lightGreen),
     UserLevel(level: 2, titleKey: 'level_2', icon: '🔥', minBadges: 2, maxBadges: 5, color: Colors.green),
     UserLevel(level: 3, titleKey: 'level_3', icon: '⚡', minBadges: 5, maxBadges: 8, color: Colors.blue),
     UserLevel(level: 4, titleKey: 'level_4', icon: '💪', minBadges: 8, maxBadges: 11, color: Colors.purple),
@@ -129,17 +127,7 @@ class GamificationService extends ChangeNotifier {
 
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
-    if (_useDummyData) {
-      // Dummy badges for preview — 4 badges = Level 2
-      // Completing any workout will unlock 'wod_1' → 5 badges = Level 3 (level up!)
-      _unlockedBadges = {
-        'streak_3', 'streak_7',
-        'time_1h', 'all_types',
-      };
-      await prefs.setStringList('unlocked_badges', _unlockedBadges.toList());
-    } else {
-      _unlockedBadges = (prefs.getStringList('unlocked_badges') ?? []).toSet();
-    }
+    _unlockedBadges = (prefs.getStringList('unlocked_badges') ?? []).toSet();
     notifyListeners();
   }
 

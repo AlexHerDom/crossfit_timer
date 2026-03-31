@@ -103,7 +103,7 @@ class _VolumeConfigWidgetState extends State<VolumeConfigWidget> {
                       SizedBox(height: 4),
                       Text(
                         widget.subtitle,
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                        style: TextStyle(fontSize: 14, color: Colors.blueGrey),
                       ),
                     ],
                   ),
@@ -116,7 +116,7 @@ class _VolumeConfigWidgetState extends State<VolumeConfigWidget> {
             // 🎚️ SLIDER DE VOLUMEN
             Row(
               children: [
-                Icon(Icons.volume_down, color: Colors.grey[600]),
+                Icon(Icons.volume_down, color: Colors.blueGrey),
                 Expanded(
                   child: Slider(
                     value: _currentVolume,

@@ -473,13 +473,13 @@ class AppDrawer extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
             gradient: LinearGradient(
               colors: [
-                level.color.withOpacity(0.25),
-                level.color.withOpacity(0.10),
+                level.color.withOpacity(0.3),
+                level.color.withOpacity(0.15),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            border: Border.all(color: level.color.withOpacity(0.3), width: 1),
+            border: Border.all(color: isDarkMode ? Colors.white.withOpacity(0.12) : Colors.black.withOpacity(0.1), width: 1),
           ),
           child: Column(
             children: [
