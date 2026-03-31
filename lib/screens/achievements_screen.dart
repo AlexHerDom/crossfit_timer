@@ -93,28 +93,56 @@ class AchievementsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  gamification.isMaxLevel && unlocked.length == allBadges.length
+                  gamification.canPrestige
                       ? languageProvider.getText('all_badges_unlocked')
                       : languageProvider.getText('achievements_subtitle'),
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w400,
-                    color: gamification.isMaxLevel && unlocked.length == allBadges.length
+                    color: gamification.canPrestige
                         ? gamification.currentLevel.color
                         : textColor.withOpacity(0.7),
                     fontStyle: FontStyle.italic,
                   ),
                 ),
                 const SizedBox(height: 10),
-                // Progress counter
-                Text(
-                  '${unlocked.length} / ${allBadges.length}',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: textColor.withOpacity(0.6),
-                  ),
+                // Progress counter + prestige
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '${unlocked.length} / ${allBadges.length}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: textColor.withOpacity(0.6),
+                      ),
+                    ),
+                    if (gamification.prestigeCount > 0) ...[
+                      const SizedBox(width: 10),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFD700).withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFFFFD700).withOpacity(0.5)),
+                        ),
+                        child: Text(
+                          '${languageProvider.getText('prestige')} ${gamification.prestigeCount}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFFFD700),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
+                if (gamification.canPrestige) ...[
+                  const SizedBox(height: 12),
+                  _buildPrestigeButton(context, gamification, languageProvider, isDark),
+                ],
                 const SizedBox(height: 16),
                 Expanded(
                   child: GridView.builder(
@@ -233,6 +261,55 @@ class AchievementsScreen extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildPrestigeButton(BuildContext context, GamificationService gamification, LanguageProvider lang, bool isDark) {
+    return ElevatedButton.icon(
+      onPressed: () {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            backgroundColor: isDark ? const Color(0xFF2A2A38) : Colors.white,
+            title: Text(
+              lang.getText('prestige_title'),
+              style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+              textAlign: TextAlign.center,
+            ),
+            content: Text(
+              lang.getText('prestige_confirm'),
+              style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
+              textAlign: TextAlign.center,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(lang.getText('cancel')),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  gamification.activatePrestige();
+                  Navigator.pop(ctx);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFFD700),
+                  foregroundColor: Colors.black87,
+                ),
+                child: Text(lang.getText('prestige_activate')),
+              ),
+            ],
+          ),
+        );
+      },
+      icon: const Text('⭐', style: TextStyle(fontSize: 18)),
+      label: Text(lang.getText('prestige_button')),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFFFFD700),
+        foregroundColor: Colors.black87,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }

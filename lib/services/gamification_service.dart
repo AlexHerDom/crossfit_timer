@@ -51,19 +51,24 @@ class GamificationService extends ChangeNotifier {
   Set<String> _unlockedBadges = {};
   int _currentStreak = 0;
   int _bestStreak = 0;
+  int _prestigeCount = 0;
 
   Set<String> get unlockedBadges => _unlockedBadges;
   int get currentStreak => _currentStreak;
   int get bestStreak => _bestStreak;
+  int get prestigeCount => _prestigeCount;
 
   static const List<UserLevel> levels = [
-    UserLevel(level: 1, titleKey: 'level_1', icon: '🌱', minBadges: 0, maxBadges: 2, color: Colors.lightGreen),
-    UserLevel(level: 2, titleKey: 'level_2', icon: '🔥', minBadges: 2, maxBadges: 5, color: Colors.green),
-    UserLevel(level: 3, titleKey: 'level_3', icon: '⚡', minBadges: 5, maxBadges: 8, color: Colors.blue),
-    UserLevel(level: 4, titleKey: 'level_4', icon: '💪', minBadges: 8, maxBadges: 11, color: Colors.purple),
-    UserLevel(level: 5, titleKey: 'level_5', icon: '🏆', minBadges: 11, maxBadges: 14, color: Colors.orange),
-    UserLevel(level: 6, titleKey: 'level_6', icon: '👑', minBadges: 14, maxBadges: 17, color: Colors.amber),
-    UserLevel(level: 7, titleKey: 'level_7', icon: '🐉', minBadges: 17, maxBadges: 17, color: Color(0xFFFFD700)),
+    UserLevel(level: 1, titleKey: 'level_1', icon: '🌱', minBadges: 0, maxBadges: 3, color: Colors.lightGreen),
+    UserLevel(level: 2, titleKey: 'level_2', icon: '🔥', minBadges: 3, maxBadges: 6, color: Colors.green),
+    UserLevel(level: 3, titleKey: 'level_3', icon: '⚡', minBadges: 6, maxBadges: 9, color: Colors.blue),
+    UserLevel(level: 4, titleKey: 'level_4', icon: '💪', minBadges: 9, maxBadges: 13, color: Colors.purple),
+    UserLevel(level: 5, titleKey: 'level_5', icon: '🏆', minBadges: 13, maxBadges: 17, color: Colors.orange),
+    UserLevel(level: 6, titleKey: 'level_6', icon: '👑', minBadges: 17, maxBadges: 21, color: Colors.amber),
+    UserLevel(level: 7, titleKey: 'level_7', icon: '🐉', minBadges: 21, maxBadges: 25, color: Color(0xFFFFD700)),
+    UserLevel(level: 8, titleKey: 'level_8', icon: '🔱', minBadges: 25, maxBadges: 28, color: Color(0xFFE040FB)),
+    UserLevel(level: 9, titleKey: 'level_9', icon: '🌋', minBadges: 28, maxBadges: 30, color: Color(0xFFFF1744)),
+    UserLevel(level: 10, titleKey: 'level_10', icon: '⭐', minBadges: 30, maxBadges: 30, color: Color(0xFFFFD700)),
   ];
 
   UserLevel get currentLevel {
@@ -96,6 +101,8 @@ class GamificationService extends ChangeNotifier {
     AchievementBadge(id: 'streak_7', icon: '💥', category: BadgeCategory.streak, color: Colors.deepOrange),
     AchievementBadge(id: 'streak_14', icon: '⚡', category: BadgeCategory.streak, color: Colors.amber),
     AchievementBadge(id: 'streak_30', icon: '🏆', category: BadgeCategory.streak, color: Color(0xFFFFD700)),
+    AchievementBadge(id: 'streak_60', icon: '🌋', category: BadgeCategory.streak, color: Colors.red),
+    AchievementBadge(id: 'streak_90', icon: '🔱', category: BadgeCategory.streak, color: Color(0xFFE040FB)),
 
     // Workout count badges
     AchievementBadge(id: 'wod_1', icon: '💪', category: BadgeCategory.workout, color: Colors.blue),
@@ -103,6 +110,8 @@ class GamificationService extends ChangeNotifier {
     AchievementBadge(id: 'wod_25', icon: '🦾', category: BadgeCategory.workout, color: Colors.purple),
     AchievementBadge(id: 'wod_50', icon: '👑', category: BadgeCategory.workout, color: Color(0xFFFFD700)),
     AchievementBadge(id: 'wod_100', icon: '🐉', category: BadgeCategory.workout, color: Colors.red),
+    AchievementBadge(id: 'wod_200', icon: '☄️', category: BadgeCategory.workout, color: Color(0xFFFF6D00)),
+    AchievementBadge(id: 'wod_500', icon: '🏛️', category: BadgeCategory.workout, color: Color(0xFFE040FB)),
 
     // Variety badges
     AchievementBadge(id: 'all_types', icon: '🌟', category: BadgeCategory.variety, color: Colors.teal),
@@ -110,11 +119,15 @@ class GamificationService extends ChangeNotifier {
     AchievementBadge(id: 'emom_10', icon: '⏱️', category: BadgeCategory.variety, color: Colors.blue),
     AchievementBadge(id: 'tabata_10', icon: '🔴', category: BadgeCategory.variety, color: Colors.red),
     AchievementBadge(id: 'running_10', icon: '🏃', category: BadgeCategory.variety, color: Colors.purple),
+    AchievementBadge(id: 'countdown_10', icon: '⏰', category: BadgeCategory.variety, color: Colors.green),
 
     // Time badges
     AchievementBadge(id: 'time_1h', icon: '⏳', category: BadgeCategory.time, color: Colors.green),
     AchievementBadge(id: 'time_5h', icon: '🕐', category: BadgeCategory.time, color: Colors.teal),
     AchievementBadge(id: 'time_10h', icon: '💎', category: BadgeCategory.time, color: Colors.cyan),
+    AchievementBadge(id: 'time_25h', icon: '🌟', category: BadgeCategory.time, color: Colors.amber),
+    AchievementBadge(id: 'time_50h', icon: '🏅', category: BadgeCategory.time, color: Color(0xFFFFD700)),
+    AchievementBadge(id: 'time_100h', icon: '👼', category: BadgeCategory.time, color: Color(0xFFE040FB)),
   ];
 
   static AchievementBadge getBadge(String id) {
@@ -128,12 +141,24 @@ class GamificationService extends ChangeNotifier {
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
     _unlockedBadges = (prefs.getStringList('unlocked_badges') ?? []).toSet();
+    _prestigeCount = prefs.getInt('prestige_count') ?? 0;
     notifyListeners();
   }
 
   Future<void> _save() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList('unlocked_badges', _unlockedBadges.toList());
+    await prefs.setInt('prestige_count', _prestigeCount);
+  }
+
+  bool get canPrestige => _unlockedBadges.length == allBadges.length;
+
+  Future<void> activatePrestige() async {
+    if (!canPrestige) return;
+    _prestigeCount++;
+    _unlockedBadges.clear();
+    await _save();
+    notifyListeners();
   }
 
   /// Check for new badges after a workout is completed.
@@ -194,6 +219,8 @@ class GamificationService extends ChangeNotifier {
     check('streak_7', maxStreak >= 7);
     check('streak_14', maxStreak >= 14);
     check('streak_30', maxStreak >= 30);
+    check('streak_60', maxStreak >= 60);
+    check('streak_90', maxStreak >= 90);
 
     // Workout count badges
     check('wod_1', totalWorkouts >= 1);
@@ -201,6 +228,8 @@ class GamificationService extends ChangeNotifier {
     check('wod_25', totalWorkouts >= 25);
     check('wod_50', totalWorkouts >= 50);
     check('wod_100', totalWorkouts >= 100);
+    check('wod_200', totalWorkouts >= 200);
+    check('wod_500', totalWorkouts >= 500);
 
     // Variety badges
     check('all_types', typesSeen.containsAll(['AMRAP', 'EMOM', 'TABATA', 'COUNTDOWN', 'RUNNING']));
@@ -208,12 +237,16 @@ class GamificationService extends ChangeNotifier {
     check('emom_10', (typeCounts['EMOM'] ?? 0) >= 10);
     check('tabata_10', (typeCounts['TABATA'] ?? 0) >= 10);
     check('running_10', (typeCounts['RUNNING'] ?? 0) >= 10);
+    check('countdown_10', (typeCounts['COUNTDOWN'] ?? 0) >= 10);
 
     // Time badges (in hours)
     final totalHours = totalSeconds / 3600;
     check('time_1h', totalHours >= 1);
     check('time_5h', totalHours >= 5);
     check('time_10h', totalHours >= 10);
+    check('time_25h', totalHours >= 25);
+    check('time_50h', totalHours >= 50);
+    check('time_100h', totalHours >= 100);
 
     if (newBadges.isNotEmpty) {
       await _save();

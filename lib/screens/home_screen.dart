@@ -372,7 +372,7 @@ class AppDrawer extends StatelessWidget {
       _DrawerMenuItem(
         icon: Icons.settings_rounded,
         text: languageProvider.getText('settings'),
-        color: Colors.blueGrey,
+        color: Colors.indigo,
         onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsScreen())),
       ),
     ];
@@ -401,45 +401,53 @@ class AppDrawer extends StatelessWidget {
             children: [
               _buildDrawerHeader(context, isDarkMode, languageProvider),
               Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  itemCount: menuItems.length,
-                  itemBuilder: (context, index) {
-                    final item = menuItems[index];
-                    return _buildDrawerItem(
-                      context: context,
-                      icon: item.icon,
-                      text: item.text,
-                      color: item.color,
-                      onTap: item.onTap,
-                      isDarkMode: isDarkMode,
-                      textColor: textColor,
-                    ).animate().fadeIn(
-                      duration: 300.ms,
-                      delay: Duration(milliseconds: 80 + (index * 60)),
-                    ).slideX(begin: -0.15, end: 0);
-                  },
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
-                child: Column(
-                  children: [
-                    Divider(
-                      color: isDarkMode
-                          ? Colors.white.withOpacity(0.08)
-                          : Colors.black.withOpacity(0.06),
-                    ),
-                    _buildDrawerItem(
-                      context: context,
-                      icon: Icons.info_outline_rounded,
-                      text: languageProvider.getText('about'),
-                      color: Colors.blueGrey,
-                      onTap: () => _showAboutDialog(context),
-                      isDarkMode: isDarkMode,
-                      textColor: textColor,
-                    ),
-                  ],
+                child: SafeArea(
+                  top: false,
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        child: Column(
+                          children: [
+                            for (int index = 0; index < menuItems.length; index++)
+                              _buildDrawerItem(
+                                context: context,
+                                icon: menuItems[index].icon,
+                                text: menuItems[index].text,
+                                color: menuItems[index].color,
+                                onTap: menuItems[index].onTap,
+                                isDarkMode: isDarkMode,
+                                textColor: textColor,
+                              ).animate().fadeIn(
+                                duration: 300.ms,
+                                delay: Duration(milliseconds: 80 + (index * 60)),
+                              ).slideX(begin: -0.15, end: 0),
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Divider(
+                          color: isDarkMode
+                              ? Colors.white.withOpacity(0.08)
+                              : Colors.black.withOpacity(0.06),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: _buildDrawerItem(
+                          context: context,
+                          icon: Icons.info_outline_rounded,
+                          text: languageProvider.getText('about'),
+                          color: Colors.blueGrey,
+                          onTap: () => _showAboutDialog(context),
+                          isDarkMode: isDarkMode,
+                          textColor: textColor,
+                        ),
+                      ),
+                      const Spacer(),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -456,13 +464,15 @@ class AppDrawer extends StatelessWidget {
     final textColor = isDarkMode ? Colors.white : Colors.black87;
     final subtitleColor = isDarkMode ? Colors.white.withOpacity(0.7) : Colors.black.withOpacity(0.55);
 
+    final topPadding = MediaQuery.of(context).padding.top;
+
     return InkWell(
       onTap: () {
         Navigator.pop(context);
         Navigator.push(context, MaterialPageRoute(builder: (context) => const AchievementsScreen()));
       },
       child: Container(
-        padding: const EdgeInsets.fromLTRB(20, 40, 20, 20),
+        padding: EdgeInsets.fromLTRB(20, topPadding + 16, 20, 20),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
@@ -546,13 +556,16 @@ class AppDrawer extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 14),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(6),
-              child: LinearProgressIndicator(
-                value: progress.clamp(0.0, 1.0),
-                backgroundColor: level.color.withOpacity(0.15),
-                valueColor: AlwaysStoppedAnimation<Color>(level.color),
-                minHeight: 7,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: LinearProgressIndicator(
+                  value: progress.clamp(0.0, 1.0),
+                  backgroundColor: level.color.withOpacity(0.15),
+                  valueColor: AlwaysStoppedAnimation<Color>(level.color),
+                  minHeight: 7,
+                ),
               ),
             ),
           ],

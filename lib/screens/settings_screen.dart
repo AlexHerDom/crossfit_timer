@@ -79,23 +79,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         iconTheme: IconThemeData(
           color: themeProvider.isDarkMode ? Colors.white : Colors.black87,
         ),
-        actions: [
-          IconButton(
-            onPressed: () {
-              _saveSettings();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    '✅ ${languageProvider.getText('settings_saved')}',
-                  ),
-                  duration: const Duration(seconds: 2),
-                ),
-              );
-            },
-            icon: const Icon(Icons.save),
-            tooltip: languageProvider.getText('save_settings'),
-          ),
-        ],
       ),
       body: Stack(
         children: [
@@ -159,7 +142,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _preparationTime.toDouble(),
             5.0,
             30.0,
-            (value) => setState(() => _preparationTime = value.round()),
+            (value) { setState(() => _preparationTime = value.round()); _saveSettings(); },
             Icons.timer,
             suffix: ' ${languageProvider.getText('sec_suffix')}',
           ),
@@ -172,7 +155,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             languageProvider.getText('sounds_enabled'),
             languageProvider.getText('sounds_enabled_desc'),
             _soundEnabled,
-            (value) => setState(() => _soundEnabled = value),
+            (value) { setState(() => _soundEnabled = value); _saveSettings(); },
             Icons.volume_up,
           ),
           if (_soundEnabled)
@@ -186,7 +169,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             languageProvider.getText('vibration_enabled'),
             languageProvider.getText('vibration_enabled_desc'),
             _vibrationEnabled,
-            (value) => setState(() => _vibrationEnabled = value),
+            (value) { setState(() => _vibrationEnabled = value); _saveSettings(); },
             Icons.vibration,
           ),
 
@@ -198,7 +181,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             languageProvider.getText('keep_screen_active'),
             languageProvider.getText('keep_screen_active_desc'),
             _keepScreenOn,
-            (value) => setState(() => _keepScreenOn = value),
+            (value) { setState(() => _keepScreenOn = value); _saveSettings(); },
             Icons.screen_lock_portrait,
           ),
 
