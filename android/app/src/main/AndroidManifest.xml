@@ -1,13 +1,17 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <!-- Permisos para audio -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="com.google.android.gms.permission.AD_ID"/>
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    <!-- Permisos para notificación en pantalla de bloqueo -->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <!-- Permiso para notificación en pantalla de bloqueo -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- La notificación del timer es una notificación "ongoing" normal, no un
+         servicio en primer plano. Se eliminan para que ninguna librería los
+         vuelva a meter y Play no exija la declaración de foreground service. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" tools:node="remove" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" tools:node="remove" />
     
     <application
         android:label="CrossFit Timer Pro"
@@ -30,16 +34,17 @@
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
+            <!-- Android 16 (targetSdk 36) ignora el bloqueo a vertical en pantallas
+                 grandes (tablets, ChromeOS, XR). Esta excepción solo vale para
+                 targetSdk 36: antes de subir a 37 hay que soportar horizontal. -->
+            <property
+              android:name="android.window.PROPERTY_COMPAT_ALLOW_RESTRICTED_RESIZABILITY"
+              android:value="true" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <!-- Servicio para notificación persistente en pantalla de bloqueo -->
-        <service
-            android:name="com.dexterous.flutterlocalnotifications.ForegroundService"
-            android:foregroundServiceType="mediaPlayback"
-            android:exported="false" />
         <receiver
             android:name="com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver"
             android:exported="false" />

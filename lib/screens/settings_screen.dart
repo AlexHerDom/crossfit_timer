@@ -819,6 +819,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ],
                 ),
+                // Requerido por UMP/GDPR: permitir cambiar el consentimiento de anuncios
+                if (adService.privacyOptionsRequired)
+                  TextButton.icon(
+                    onPressed: adService.showPrivacyOptions,
+                    icon: Icon(Icons.privacy_tip_outlined, size: 18, color: subtitleColor),
+                    label: Text('Privacidad de anuncios', style: TextStyle(color: subtitleColor)),
+                  ),
               ],
             ),
           ),

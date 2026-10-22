@@ -1998,9 +1998,13 @@ ${languageProvider.getText('work_20s')} | ${languageProvider.getText('rest_10s')
                   offset: _isPaused ? Offset.zero : const Offset(0, 1),
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
-                  child: SizedBox(
-                    height: adService.timerBannerAd!.size.height.toDouble(),
-                    child: AdWidget(ad: adService.timerBannerAd!),
+                  // SafeArea: con edge-to-edge el banner no debe quedar bajo la barra de navegación
+                  child: SafeArea(
+                    top: false,
+                    child: SizedBox(
+                      height: adService.timerBannerAd!.size.height.toDouble(),
+                      child: AdWidget(ad: adService.timerBannerAd!),
+                    ),
                   ),
                 ),
               ),

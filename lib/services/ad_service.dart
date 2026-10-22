@@ -34,9 +34,13 @@ class AdService extends ChangeNotifier {
   bool _isTimerBannerAdReady = false;
   bool _adsRemoved = false;
   bool _isPurchasing = false;
+  bool _adsLoadStarted = false;
+  bool _privacyOptionsRequired = false;
   StreamSubscription<List<PurchaseDetails>>? _purchaseSubscription;
 
   bool get adsRemoved => _adsRemoved;
+  /// true si el usuario está en una región (EEE/UK) donde debe poder cambiar su consentimiento
+  bool get privacyOptionsRequired => _privacyOptionsRequired;
   bool get isBannerAdReady => _isBannerAdReady;
   bool get isTimerBannerAdReady => _isTimerBannerAdReady;
   bool get isPurchasing => _isPurchasing;
@@ -58,10 +62,44 @@ class AdService extends ChangeNotifier {
     );
 
     if (!_adsRemoved) {
-      _loadBannerAd();
-      _loadTimerBannerAd();
+      // Si ya hay consentimiento de una sesión anterior, cargar sin esperar al formulario
+      if (await ConsentInformation.instance.canRequestAds()) _loadAds();
+      _gatherConsent();
     }
     notifyListeners();
+  }
+
+  /// Flujo UMP: actualiza el estado de consentimiento y muestra el formulario
+  /// solo si hace falta (p. ej. usuarios en el EEE/UK). Fuera de esas regiones no muestra nada.
+  void _gatherConsent() {
+    ConsentInformation.instance.requestConsentInfoUpdate(
+      ConsentRequestParameters(),
+      () {
+        ConsentForm.loadAndShowConsentFormIfRequired((FormError? error) async {
+          _privacyOptionsRequired =
+              await ConsentInformation.instance.getPrivacyOptionsRequirementStatus() ==
+                  PrivacyOptionsRequirementStatus.required;
+          if (await ConsentInformation.instance.canRequestAds()) _loadAds();
+          notifyListeners();
+        });
+      },
+      (FormError error) async {
+        // Sin red u otro error: usar el último consentimiento guardado
+        if (await ConsentInformation.instance.canRequestAds()) _loadAds();
+      },
+    );
+  }
+
+  /// Abre el formulario para que el usuario cambie su consentimiento
+  void showPrivacyOptions() {
+    ConsentForm.showPrivacyOptionsForm((FormError? error) {});
+  }
+
+  void _loadAds() {
+    if (_adsLoadStarted || _adsRemoved) return;
+    _adsLoadStarted = true;
+    _loadBannerAd();
+    _loadTimerBannerAd();
   }
 
   void _loadBannerAd() {

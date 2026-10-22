@@ -21,7 +21,9 @@ void main() async {
   await LicenseManager.initialize();
   await AnalyticsManager.initialize();
   await NotificationService.initialize();
-  await MobileAds.instance.initialize();
+  // Sin await: inicializar AdMob puede tardar varios segundos (o más sin red)
+  // y bloqueaba el splash. Los banners se cargan cuando el SDK está listo.
+  MobileAds.instance.initialize();
 
   // Configurar orientación vertical para toda la app
   SystemChrome.setPreferredOrientations([

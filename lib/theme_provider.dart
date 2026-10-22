@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ThemeProvider with ChangeNotifier {
@@ -79,6 +80,9 @@ class ThemeProvider with ChangeNotifier {
       backgroundColor: _primaryColor,
       foregroundColor: Colors.white,
       elevation: 4,
+      // Las pantallas usan AppBars transparentes sobre fondo claro/oscuro: con
+      // edge-to-edge los íconos de la barra de estado deben seguir al tema
+      systemOverlayStyle: _isDarkMode ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(

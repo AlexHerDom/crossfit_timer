@@ -197,9 +197,13 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             if (!adService.adsRemoved && adService.isBannerAdReady)
-              SizedBox(
-                height: adService.bannerAd!.size.height.toDouble(),
-                child: AdWidget(ad: adService.bannerAd!),
+              // SafeArea: con edge-to-edge el banner no debe quedar bajo la barra de navegación
+              SafeArea(
+                top: false,
+                child: SizedBox(
+                  height: adService.bannerAd!.size.height.toDouble(),
+                  child: AdWidget(ad: adService.bannerAd!),
+                ),
               ),
           ],
         ),
