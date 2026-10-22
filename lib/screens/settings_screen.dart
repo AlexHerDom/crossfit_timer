@@ -772,7 +772,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ),
                           ),
                           Text(
-                            'Pago unico de \$2.00 — apoya el desarrollo',
+                            'Pago único — apoya el desarrollo',
                             style: TextStyle(fontSize: 13, color: subtitleColor),
                           ),
                         ],
@@ -804,7 +804,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                               )
                             : const Icon(Icons.block),
-                        label: Text(adService.isPurchasing ? 'Procesando...' : 'Quitar anuncios — \$2'),
+                        label: Text(adService.isPurchasing
+                            ? 'Procesando...'
+                            : adService.removeAdsPrice != null
+                                ? 'Quitar anuncios — ${adService.removeAdsPrice}'
+                                : 'Quitar anuncios'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: _getThemeColor(),
                           foregroundColor: Colors.white,

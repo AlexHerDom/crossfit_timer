@@ -36,9 +36,12 @@ class AdService extends ChangeNotifier {
   bool _isPurchasing = false;
   bool _adsLoadStarted = false;
   bool _privacyOptionsRequired = false;
+  String? _removeAdsPrice;
   StreamSubscription<List<PurchaseDetails>>? _purchaseSubscription;
 
   bool get adsRemoved => _adsRemoved;
+  /// Precio localizado de Google Play (p. ej. "MX$38.00"); null hasta que Play responda
+  String? get removeAdsPrice => _removeAdsPrice;
   /// true si el usuario está en una región (EEE/UK) donde debe poder cambiar su consentimiento
   bool get privacyOptionsRequired => _privacyOptionsRequired;
   bool get isBannerAdReady => _isBannerAdReady;
@@ -65,8 +68,24 @@ class AdService extends ChangeNotifier {
       // Si ya hay consentimiento de una sesión anterior, cargar sin esperar al formulario
       if (await ConsentInformation.instance.canRequestAds()) _loadAds();
       _gatherConsent();
+      _loadRemoveAdsPrice();
     }
     notifyListeners();
+  }
+
+  /// Obtiene el precio en la moneda del usuario para mostrarlo en el botón de compra
+  Future<void> _loadRemoveAdsPrice() async {
+    try {
+      if (!await InAppPurchase.instance.isAvailable()) return;
+      final response =
+          await InAppPurchase.instance.queryProductDetails({removeAdsProductId});
+      if (response.productDetails.isNotEmpty) {
+        _removeAdsPrice = response.productDetails.first.price;
+        notifyListeners();
+      }
+    } catch (_) {
+      // Sin Play Store o sin red: el botón se muestra sin precio
+    }
   }
 
   /// Flujo UMP: actualiza el estado de consentimiento y muestra el formulario
